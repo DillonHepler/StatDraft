@@ -1,0 +1,206 @@
+{
+  "players": [
+    {
+      "id": "tom_brady",
+      "displayName": "Tom Brady",
+      "aliases": ["Brady", "T Brady"],
+      "seasons": {
+        "2005": { "position": "QB", "games": 16, "passingYards": 4110, "passingTD": 26, "interceptions": 14, "rushingYards": 89, "rushingTD": 1, "receptions": 0, "receivingYards": 0, "receivingTD": 0 },
+        "2007": { "position": "QB", "games": 16, "passingYards": 4806, "passingTD": 50, "interceptions": 8, "rushingYards": 98, "rushingTD": 2, "receptions": 0, "receivingYards": 0, "receivingTD": 0 },
+        "2008": { "position": "QB", "games": 1, "passingYards": 76, "passingTD": 0, "interceptions": 0, "rushingYards": 0, "rushingTD": 0, "receptions": 0, "receivingYards": 0, "receivingTD": 0 },
+        "2009": { "position": "QB", "games": 16, "passingYards": 4398, "passingTD": 28, "interceptions": 13, "rushingYards": 44, "rushingTD": 1, "receptions": 0, "receivingYards": 0, "receivingTD": 0 },
+        "2011": { "position": "QB", "games": 16, "passingYards": 5235, "passingTD": 39, "interceptions": 12, "rushingYards": 109, "rushingTD": 3, "receptions": 1, "receivingYards": 5, "receivingTD": 0 }
+      }
+    },
+    {
+      "id": "peyton_manning",
+      "displayName": "Peyton Manning",
+      "aliases": ["Manning", "P Manning"],
+      "seasons": {
+        "2005": { "position": "QB", "games": 16, "passingYards": 3747, "passingTD": 28, "interceptions": 11, "rushingYards": 13, "rushingTD": 0, "receptions": 0, "receivingYards": 0, "receivingTD": 0 },
+        "2006": { "position": "QB", "games": 16, "passingYards": 4397, "passingTD": 31, "interceptions": 9, "rushingYards": 36, "rushingTD": 4, "receptions": 0, "receivingYards": 0, "receivingTD": 0 },
+        "2009": { "position": "QB", "games": 16, "passingYards": 4500, "passingTD": 33, "interceptions": 16, "rushingYards": 19, "rushingTD": 0, "receptions": 0, "receivingYards": 0, "receivingTD": 0 },
+        "2013": { "position": "QB", "games": 16, "passingYards": 5477, "passingTD": 55, "interceptions": 10, "rushingYards": -31, "rushingTD": 1, "receptions": 0, "receivingYards": 0, "receivingTD": 0 }
+      }
+    },
+    {
+      "id": "drew_brees",
+      "displayName": "Drew Brees",
+      "aliases": ["Brees"],
+      "seasons": {
+        "2005": { "position": "QB", "games": 16, "passingYards": 3576, "passingTD": 24, "interceptions": 15, "rushingYards": 49, "rushingTD": 1, "receptions": 0, "receivingYards": 0, "receivingTD": 0 },
+        "2008": { "position": "QB", "games": 16, "passingYards": 5069, "passingTD": 34, "interceptions": 17, "rushingYards": 0, "rushingTD": 0, "receptions": 0, "receivingYards": 0, "receivingTD": 0 },
+        "2011": { "position": "QB", "games": 16, "passingYards": 5476, "passingTD": 46, "interceptions": 14, "rushingYards": 86, "rushingTD": 1, "receptions": 0, "receivingYards": 0, "receivingTD": 0 }
+      }
+    },
+    {
+      "id": "aaron_rodgers",
+      "displayName": "Aaron Rodgers",
+      "aliases": ["Rodgers", "A Rodgers"],
+      "seasons": {
+        "2009": { "position": "QB", "games": 16, "passingYards": 4434, "passingTD": 30, "interceptions": 7, "rushingYards": 316, "rushingTD": 5, "receptions": 0, "receivingYards": 0, "receivingTD": 0 },
+        "2011": { "position": "QB", "games": 15, "passingYards": 4643, "passingTD": 45, "interceptions": 6, "rushingYards": 257, "rushingTD": 2, "receptions": 0, "receivingYards": 0, "receivingTD": 0 }
+      }
+    },
+    {
+      "id": "eli_manning",
+      "displayName": "Eli Manning",
+      "aliases": ["E Manning", "Eli"],
+      "seasons": {
+        "2011": { "position": "QB", "games": 16, "passingYards": 4933, "passingTD": 29, "interceptions": 16, "rushingYards": 55, "rushingTD": 1, "receptions": 0, "receivingYards": 0, "receivingTD": 0 }
+      }
+    },
+    {
+      "id": "ladainian_tomlinson",
+      "displayName": "LaDainian Tomlinson",
+      "aliases": ["LT", "Tomlinson", "L Tomlinson"],
+      "seasons": {
+        "2005": { "position": "RB", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 1462, "rushingTD": 18, "receptions": 51, "receivingYards": 370, "receivingTD": 2 },
+        "2006": { "position": "RB", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 1815, "rushingTD": 28, "receptions": 56, "receivingYards": 508, "receivingTD": 3 }
+      }
+    },
+    {
+      "id": "adrian_peterson",
+      "displayName": "Adrian Peterson",
+      "aliases": ["AP", "Peterson"],
+      "seasons": {
+        "2012": { "position": "RB", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 2097, "rushingTD": 12, "receptions": 40, "receivingYards": 217, "receivingTD": 1 },
+        "2015": { "position": "RB", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 1485, "rushingTD": 11, "receptions": 29, "receivingYards": 222, "receivingTD": 0 },
+        "2017": { "position": "RB", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 1045, "rushingTD": 7, "receptions": 32, "receivingYards": 305, "receivingTD": 1 },
+        "2020": { "position": "RB", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 604, "rushingTD": 7, "receptions": 18, "receivingYards": 127, "receivingTD": 0 }
+      }
+    },
+    {
+      "id": "frank_gore",
+      "displayName": "Frank Gore",
+      "aliases": ["Gore"],
+      "seasons": {
+        "2006": { "position": "RB", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 1695, "rushingTD": 8, "receptions": 61, "receivingYards": 485, "receivingTD": 1 },
+        "2012": { "position": "RB", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 1214, "rushingTD": 8, "receptions": 28, "receivingYards": 234, "receivingTD": 1 }
+      }
+    },
+    {
+      "id": "steven_jackson",
+      "displayName": "Steven Jackson",
+      "aliases": ["Jackson", "S Jackson"],
+      "seasons": {
+        "2006": { "position": "RB", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 1528, "rushingTD": 13, "receptions": 90, "receivingYards": 806, "receivingTD": 3 }
+      }
+    },
+    {
+      "id": "chris_johnson",
+      "displayName": "Chris Johnson",
+      "aliases": ["CJ2K", "C Johnson"],
+      "seasons": {
+        "2009": { "position": "RB", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 2006, "rushingTD": 14, "receptions": 50, "receivingYards": 503, "receivingTD": 2 },
+        "2015": { "position": "RB", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 1077, "rushingTD": 7, "receptions": 44, "receivingYards": 408, "receivingTD": 0 }
+      }
+    },
+    {
+      "id": "marshawn_lynch",
+      "displayName": "Marshawn Lynch",
+      "aliases": ["Beast Mode", "Lynch"],
+      "seasons": {
+        "2012": { "position": "RB", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 1590, "rushingTD": 11, "receptions": 23, "receivingYards": 196, "receivingTD": 1 },
+        "2014": { "position": "RB", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 1306, "rushingTD": 13, "receptions": 37, "receivingYards": 367, "receivingTD": 4 }
+      }
+    },
+    {
+      "id": "derrick_henry",
+      "displayName": "Derrick Henry",
+      "aliases": ["Henry"],
+      "seasons": {
+        "2017": { "position": "RB", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 744, "rushingTD": 5, "receptions": 11, "receivingYards": 91, "receivingTD": 0 },
+        "2020": { "position": "RB", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 2027, "rushingTD": 17, "receptions": 19, "receivingYards": 114, "receivingTD": 0 }
+      }
+    },
+    {
+      "id": "randy_moss",
+      "displayName": "Randy Moss",
+      "aliases": ["Moss"],
+      "seasons": {
+        "2007": { "position": "WR", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 0, "rushingTD": 0, "receptions": 98, "receivingYards": 1493, "receivingTD": 23 }
+      }
+    },
+    {
+      "id": "calvin_johnson",
+      "displayName": "Calvin Johnson",
+      "aliases": ["Megatron", "C Johnson WR"],
+      "seasons": {
+        "2012": { "position": "WR", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 0, "rushingTD": 0, "receptions": 122, "receivingYards": 1964, "receivingTD": 5 }
+      }
+    },
+    {
+      "id": "julio_jones",
+      "displayName": "Julio Jones",
+      "aliases": ["Jones"],
+      "seasons": {
+        "2014": { "position": "WR", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 0, "rushingTD": 0, "receptions": 104, "receivingYards": 1593, "receivingTD": 6 },
+        "2018": { "position": "WR", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 0, "rushingTD": 0, "receptions": 113, "receivingYards": 1677, "receivingTD": 8 },
+        "2019": { "position": "WR", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 0, "rushingTD": 0, "receptions": 99, "receivingYards": 1394, "receivingTD": 6 }
+      }
+    },
+    {
+      "id": "antonio_brown",
+      "displayName": "Antonio Brown",
+      "aliases": ["AB", "Brown WR"],
+      "seasons": {
+        "2010": { "position": "WR", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 0, "rushingTD": 0, "receptions": 16, "receivingYards": 167, "receivingTD": 0 },
+        "2014": { "position": "WR", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 0, "rushingTD": 0, "receptions": 129, "receivingYards": 1698, "receivingTD": 13 }
+      }
+    },
+    {
+      "id": "dez_bryant",
+      "displayName": "Dez Bryant",
+      "aliases": ["Dez"],
+      "seasons": {
+        "2010": { "position": "WR", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 0, "rushingTD": 0, "receptions": 45, "receivingYards": 561, "receivingTD": 6 }
+      }
+    },
+    {
+      "id": "tyreek_hill",
+      "displayName": "Tyreek Hill",
+      "aliases": ["Hill"],
+      "seasons": {
+        "2018": { "position": "WR", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 151, "rushingTD": 1, "receptions": 87, "receivingYards": 1479, "receivingTD": 12 },
+        "2019": { "position": "WR", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 23, "rushingTD": 0, "receptions": 58, "receivingYards": 860, "receivingTD": 7 }
+      }
+    },
+    {
+      "id": "deandre_hopkins",
+      "displayName": "DeAndre Hopkins",
+      "aliases": ["Hopkins", "DHop"],
+      "seasons": {
+        "2019": { "position": "WR", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 18, "rushingTD": 0, "receptions": 104, "receivingYards": 1165, "receivingTD": 7 }
+      }
+    },
+    {
+      "id": "rob_gronkowski",
+      "displayName": "Rob Gronkowski",
+      "aliases": ["Gronk", "Gronkowski"],
+      "seasons": {
+        "2011": { "position": "TE", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 0, "rushingTD": 0, "receptions": 90, "receivingYards": 1327, "receivingTD": 17 },
+        "2013": { "position": "TE", "games": 7, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 0, "rushingTD": 0, "receptions": 39, "receivingYards": 592, "receivingTD": 4 },
+        "2016": { "position": "TE", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 0, "rushingTD": 0, "receptions": 25, "receivingYards": 540, "receivingTD": 3 }
+      }
+    },
+    {
+      "id": "travis_kelce",
+      "displayName": "Travis Kelce",
+      "aliases": ["Kelce"],
+      "seasons": {
+        "2013": { "position": "TE", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 0, "rushingTD": 0, "receptions": 67, "receivingYards": 862, "receivingTD": 5 },
+        "2016": { "position": "TE", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 0, "rushingTD": 0, "receptions": 85, "receivingYards": 1125, "receivingTD": 4 },
+        "2018": { "position": "TE", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 0, "rushingTD": 0, "receptions": 103, "receivingYards": 1336, "receivingTD": 10 }
+      }
+    },
+    {
+      "id": "jimmy_graham",
+      "displayName": "Jimmy Graham",
+      "aliases": ["Graham"],
+      "seasons": {
+        "2013": { "position": "TE", "games": 16, "passingYards": 0, "passingTD": 0, "interceptions": 0, "rushingYards": 0, "rushingTD": 0, "receptions": 86, "receivingYards": 1215, "receivingTD": 16 }
+      }
+    }
+  ]
+}

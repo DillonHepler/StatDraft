@@ -1,0 +1,12 @@
+Stat Draft — iOS (SwiftUI)
+
+Open on a Mac with Xcode 15+:
+  Double-click StatDraft.xcodeproj
+  Select an iPhone simulator (iOS 17+), press Run.
+
+Set your Team in Signing & Capabilities for a physical device.
+
+This MVP uses bundled demo_stats.json (classic-era NFL stars, approximate stats for gameplay).
+Replace StatsRepository’s data source later with a licensed stats API for production.
+
+Multiplayer in v1: same device, pass-and-play (snake draft). Real-time online sync is not included yet.

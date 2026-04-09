@@ -23,6 +23,7 @@ struct PlayerRecord: Codable, Identifiable, Equatable {
     let draftYear: Int?
     let draftRound: Int?
     let draftPick: Int?
+    let superBowlWins: Int?
     /// Key is season year as string e.g. "2007"
     var seasons: [String: SeasonStatLine]
 
@@ -34,6 +35,26 @@ struct PlayerRecord: Codable, Identifiable, Equatable {
         seasons.values.contains { line in
             line.team?.caseInsensitiveCompare(team) == .orderedSame
         }
+    }
+
+    func startsWith(letter: String) -> Bool {
+        let trimmed = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let first = trimmed.first else { return false }
+        return String(first).caseInsensitiveCompare(letter) == .orderedSame
+    }
+
+    var isAlliterativeName: Bool {
+        let components = displayName
+            .split(separator: " ")
+            .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        guard components.count >= 2,
+              let firstInitial = components.first?.first,
+              let lastInitial = components.last?.first
+        else {
+            return false
+        }
+        return String(firstInitial).caseInsensitiveCompare(String(lastInitial)) == .orderedSame
     }
 
     func matches(query: String) -> Bool {

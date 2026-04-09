@@ -185,15 +185,19 @@ enum PromptFactory {
             }
         }
 
-        // Birth-year novelty prompts.
-        let birthYears = [1978, 1982, 1986, 1990, 1994, 1998, 2001]
-        for year in [2010, 2014, 2018, 2022, 2024] {
-            for birthYear in birthYears {
-                add(year, .QB, .passingYards, .bornInYear(birthYear), "\(year) QB born in \(birthYear)", "Name a QB from \(year) born in \(birthYear). Points = passing yards.")
-                add(year, .RB, .fantasyHalfPPR, .bornInYear(birthYear), "\(year) RB born in \(birthYear)", "Name an RB from \(year) born in \(birthYear). Points = half-PPR fantasy.")
-                add(year, .WR, .receptions, .bornInYear(birthYear), "\(year) WR born in \(birthYear)", "Name a WR from \(year) born in \(birthYear). Points = 0.5× receptions.")
-                add(year, .TE, .receivingYards, .bornInYear(birthYear), "\(year) TE born in \(birthYear)", "Name a TE from \(year) born in \(birthYear). Points = receiving yards.")
+        // Fun name-based prompts.
+        let initialLetters = ["A", "B", "C", "D", "E", "J", "K", "M", "R", "S", "T"]
+        for year in [2008, 2012, 2016, 2020, 2024] {
+            for letter in initialLetters {
+                add(year, .QB, .passingYards, .nameStartsWithLetter(letter), "\(year) QB starts with \(letter)", "Name a QB from \(year) whose name starts with \(letter). Points = passing yards.")
+                add(year, .RB, .rushingYards, .nameStartsWithLetter(letter), "\(year) RB starts with \(letter)", "Name an RB from \(year) whose name starts with \(letter). Points = rushing yards.")
+                add(year, .WR, .receivingYards, .nameStartsWithLetter(letter), "\(year) WR starts with \(letter)", "Name a WR from \(year) whose name starts with \(letter). Points = receiving yards.")
+                add(year, .TE, .receivingTouchdowns, .nameStartsWithLetter(letter), "\(year) TE starts with \(letter)", "Name a TE from \(year) whose name starts with \(letter). Points = 6× receiving TDs.")
             }
+            add(year, .QB, .passingTouchdowns, .alliterativeName, "\(year) QB alliterative name", "Name a QB from \(year) with an alliterative name. Points = 4× passing TDs.")
+            add(year, .RB, .fantasyHalfPPR, .alliterativeName, "\(year) RB alliterative name", "Name an RB from \(year) with an alliterative name. Points = half-PPR fantasy.")
+            add(year, .WR, .receivingYards, .alliterativeName, "\(year) WR alliterative name", "Name a WR from \(year) with an alliterative name. Points = receiving yards.")
+            add(year, .TE, .receptions, .alliterativeName, "\(year) TE alliterative name", "Name a TE from \(year) with an alliterative name. Points = 0.5× receptions.")
         }
 
         // Over/under style categories and combo rules.
@@ -242,6 +246,18 @@ enum PromptFactory {
                     "Name a TE from \(year) with 8 or fewer receiving TDs who played for \(team) at any point in their career. Points = 6× receiving TDs."
                 )
             }
+        }
+
+        // Championship-constraint prompts.
+        for year in [2008, 2012, 2016, 2020, 2024] {
+            add(year, .QB, .passingTouchdowns, .superBowlWinsExactly(0), "\(year) QB no titles", "Name a QB from \(year) who never won a championship. Points = 4× passing TDs.")
+            add(year, .RB, .rushingYards, .superBowlWinsExactly(0), "\(year) RB no titles", "Name an RB from \(year) who never won a championship. Points = rushing yards.")
+            add(year, .WR, .receivingYards, .superBowlWinsExactly(0), "\(year) WR no titles", "Name a WR from \(year) who never won a championship. Points = receiving yards.")
+            add(year, .TE, .receivingTouchdowns, .superBowlWinsExactly(0), "\(year) TE no titles", "Name a TE from \(year) who never won a championship. Points = 6× receiving TDs.")
+            add(year, .QB, .passingYards, .superBowlWinsAtLeast(2), "\(year) QB 2+ rings", "Name a QB from \(year) with 2+ Super Bowl wins. Points = passing yards.")
+            add(year, .RB, .fantasyHalfPPR, .superBowlWinsAtLeast(2), "\(year) RB 2+ rings", "Name an RB from \(year) with 2+ Super Bowl wins. Points = half-PPR fantasy.")
+            add(year, .WR, .receivingTouchdowns, .superBowlWinsAtLeast(2), "\(year) WR 2+ rings", "Name a WR from \(year) with 2+ Super Bowl wins. Points = 6× receiving TDs.")
+            add(year, .TE, .receivingYards, .superBowlWinsAtLeast(2), "\(year) TE 2+ rings", "Name a TE from \(year) with 2+ Super Bowl wins. Points = receiving yards.")
         }
 
         // Draft-oriented prompts. Season is where scoring comes from; draft filter checks career metadata.

@@ -37,6 +37,8 @@ def main() -> None:
             assert isinstance(player["draftRound"], int)
         if player.get("draftPick") is not None:
             assert isinstance(player["draftPick"], int)
+        if player.get("superBowlWins") is not None:
+            assert isinstance(player["superBowlWins"], int)
         assert isinstance(player["seasons"], dict) and player["seasons"]
         for season, line in player["seasons"].items():
             int(season)

@@ -90,6 +90,10 @@ enum PromptRequirement: Codable, Equatable {
     case draftedInRound(Int)
     case draftedAtPickAtMost(Int)
     case draftedAtPickRange(Int, Int)
+    case nameStartsWithLetter(String)
+    case alliterativeName
+    case superBowlWinsAtLeast(Int)
+    case superBowlWinsExactly(Int)
 
     func isSatisfied(player: PlayerRecord, line: SeasonStatLine) -> Bool {
         switch self {
@@ -119,6 +123,14 @@ enum PromptRequirement: Codable, Equatable {
         case .draftedAtPickRange(let low, let high):
             guard let draftPick = player.draftPick else { return false }
             return draftPick >= low && draftPick <= high
+        case .nameStartsWithLetter(let letter):
+            return player.startsWith(letter: letter)
+        case .alliterativeName:
+            return player.isAlliterativeName
+        case .superBowlWinsAtLeast(let wins):
+            return (player.superBowlWins ?? 0) >= wins
+        case .superBowlWinsExactly(let wins):
+            return (player.superBowlWins ?? 0) == wins
         }
     }
 
@@ -148,6 +160,14 @@ enum PromptRequirement: Codable, Equatable {
             return "That player was not drafted within the first \(pick) picks."
         case .draftedAtPickRange(let low, let high):
             return "That player was not drafted between picks \(low) and \(high)."
+        case .nameStartsWithLetter(let letter):
+            return "That player's name does not start with \(letter)."
+        case .alliterativeName:
+            return "That player does not have an alliterative name."
+        case .superBowlWinsAtLeast(let wins):
+            return "That player does not have \(wins)+ Super Bowl wins."
+        case .superBowlWinsExactly(let wins):
+            return "That player does not have exactly \(wins) Super Bowl wins."
         }
     }
 }

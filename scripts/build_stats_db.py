@@ -113,6 +113,48 @@ def main() -> None:
         if pd.notna(row.gsis_id)
     }
 
+    champion_teams_by_season = {
+        1999: {"STL"},
+        2000: {"BAL"},
+        2001: {"NE"},
+        2002: {"TB"},
+        2003: {"NE"},
+        2004: {"NE"},
+        2005: {"PIT"},
+        2006: {"IND"},
+        2007: {"NYG"},
+        2008: {"PIT"},
+        2009: {"NO"},
+        2010: {"GB"},
+        2011: {"NYG"},
+        2012: {"BAL"},
+        2013: {"SEA"},
+        2014: {"NE"},
+        2015: {"DEN"},
+        2016: {"NE"},
+        2017: {"PHI"},
+        2018: {"NE"},
+        2019: {"KC"},
+        2020: {"TB"},
+        2021: {"LA", "LAR"},
+        2022: {"KC"},
+        2023: {"KC"},
+        2024: {"PHI"},
+    }
+    super_bowl_wins_by_id: dict[str, int] = {}
+    champion_player_seasons: set[tuple[str, int]] = set()
+    for row in playable.itertuples(index=False):
+        player_id = str(row.player_id).strip()
+        if not player_id:
+            continue
+        season = int(row.season)
+        team = str(row.team).strip().upper()
+        if season in champion_teams_by_season and team in champion_teams_by_season[season]:
+            key = (player_id, season)
+            if key not in champion_player_seasons:
+                champion_player_seasons.add(key)
+                super_bowl_wins_by_id[player_id] = super_bowl_wins_by_id.get(player_id, 0) + 1
+
     seasons_by_player: dict[str, dict[str, dict[str, int | str]]] = {}
     names_by_player: dict[str, str] = {}
 
@@ -152,6 +194,7 @@ def main() -> None:
                 "draftYear": draft_info_by_id.get(player_id, (None, None, None))[0],
                 "draftRound": draft_info_by_id.get(player_id, (None, None, None))[1],
                 "draftPick": draft_info_by_id.get(player_id, (None, None, None))[2],
+                "superBowlWins": super_bowl_wins_by_id.get(player_id, 0),
                 "seasons": seasons,
             }
         )

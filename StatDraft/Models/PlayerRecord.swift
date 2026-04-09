@@ -27,6 +27,12 @@ struct PlayerRecord: Codable, Identifiable, Equatable {
         seasons[String(season)]
     }
 
+    func playedForTeamInCareer(_ team: String) -> Bool {
+        seasons.values.contains { line in
+            line.team?.caseInsensitiveCompare(team) == .orderedSame
+        }
+    }
+
     func matches(query: String) -> Bool {
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard !q.isEmpty else { return false }

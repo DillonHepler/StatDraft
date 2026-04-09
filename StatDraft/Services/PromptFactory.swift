@@ -1,6 +1,6 @@
 import Foundation
 
-/// Builds a fixed-length prompt list for a draft (curated templates + shuffled variety).
+/// Builds a fixed-length prompt list for a draft with broad random variety.
 enum PromptFactory {
     private struct Template {
         let season: Int
@@ -11,216 +11,7 @@ enum PromptFactory {
         let detail: String
     }
 
-    private static let pool: [Template] = [
-        Template(
-            season: 2007,
-            position: .QB,
-            scoring: .passingYards,
-            requirement: .any,
-            title: "2007 QB — Air show",
-            detail: "Name a QB who played in 2007. Points = passing yards that season."
-        ),
-        Template(
-            season: 2011,
-            position: .QB,
-            scoring: .passingTouchdowns,
-            requirement: .any,
-            title: "2011 QB — Touchdown factory",
-            detail: "Name a QB from 2011. Points = 4× passing TDs."
-        ),
-        Template(
-            season: 2016,
-            position: .QB,
-            scoring: .fantasyHalfPPR,
-            requirement: .playedForTeam("ATL"),
-            title: "Falcons QB special",
-            detail: "Name a QB from 2016 who played for ATL. Points = half-PPR fantasy."
-        ),
-        Template(
-            season: 2018,
-            position: .QB,
-            scoring: .passingTouchdowns,
-            requirement: .playedForTeam("KC"),
-            title: "Chiefs QB — Big plays",
-            detail: "Name a QB from 2018 who played for KC. Points = 4× passing TDs."
-        ),
-        Template(
-            season: 2019,
-            position: .QB,
-            scoring: .passingYards,
-            requirement: .bornInYear(1995),
-            title: "2019 QB born in 1995",
-            detail: "Name a QB from 2019 born in 1995. Points = passing yards."
-        ),
-        Template(
-            season: 2006,
-            position: .RB,
-            scoring: .rushingYards,
-            requirement: .any,
-            title: "2006 RB — Ground game",
-            detail: "Name an RB from 2006. Points = rushing yards."
-        ),
-        Template(
-            season: 2012,
-            position: .RB,
-            scoring: .fantasyHalfPPR,
-            requirement: .any,
-            title: "2012 RB — Half-PPR monster",
-            detail: "Name an RB from 2012. Points = half-PPR fantasy using combined stats."
-        ),
-        Template(
-            season: 2017,
-            position: .RB,
-            scoring: .rushingTouchdowns,
-            requirement: .playedForTeam("LA"),
-            title: "Rams RB — End zone",
-            detail: "Name an RB from 2017 who played for LA. Points = 6× rushing TDs."
-        ),
-        Template(
-            season: 2020,
-            position: .RB,
-            scoring: .fantasyHalfPPR,
-            requirement: .bornInYear(1995),
-            title: "2020 RB born in 1995",
-            detail: "Name an RB from 2020 born in 1995. Points = half-PPR fantasy."
-        ),
-        Template(
-            season: 2014,
-            position: .WR,
-            scoring: .receivingYards,
-            requirement: .any,
-            title: "2014 WR — Downfield",
-            detail: "Name a WR from 2014. Points = receiving yards."
-        ),
-        Template(
-            season: 2018,
-            position: .WR,
-            scoring: .receptions,
-            requirement: .any,
-            title: "2018 WR — PPR lean",
-            detail: "Name a WR from 2018. Points = 0.5× receptions."
-        ),
-        Template(
-            season: 2020,
-            position: .WR,
-            scoring: .receptions,
-            requirement: .bornInYear(1999),
-            title: "2020 WR born in 1999",
-            detail: "Name a WR from 2020 born in 1999. Points = 0.5× receptions."
-        ),
-        Template(
-            season: 2019,
-            position: .WR,
-            scoring: .receivingYards,
-            requirement: .playedForTeam("TB"),
-            title: "Bucs WR — Chunk gains",
-            detail: "Name a WR from 2019 who played for TB. Points = receiving yards."
-        ),
-        Template(
-            season: 2013,
-            position: .TE,
-            scoring: .receivingTouchdowns,
-            requirement: .any,
-            title: "2013 TE — Red zone",
-            detail: "Name a TE from 2013. Points = 6× receiving TDs."
-        ),
-        Template(
-            season: 2016,
-            position: .TE,
-            scoring: .receivingYards,
-            requirement: .any,
-            title: "2016 TE — Move the chains",
-            detail: "Name a TE from 2016. Points = receiving yards."
-        ),
-        Template(
-            season: 2019,
-            position: .TE,
-            scoring: .fantasyHalfPPR,
-            requirement: .any,
-            title: "2019 TE — Full profile",
-            detail: "Name a TE from 2019. Points = half-PPR fantasy."
-        ),
-        Template(
-            season: 2020,
-            position: .TE,
-            scoring: .receivingTouchdowns,
-            requirement: .playedForTeam("KC"),
-            title: "Chiefs TE — Red zone",
-            detail: "Name a TE from 2020 who played for KC. Points = 6× receiving TDs."
-        ),
-        Template(
-            season: 2018,
-            position: .TE,
-            scoring: .receptions,
-            requirement: .bornInYear(1989),
-            title: "2018 TE born in 1989",
-            detail: "Name a TE from 2018 born in 1989. Points = 0.5× receptions."
-        ),
-        Template(
-            season: 2009,
-            position: .QB,
-            scoring: .fantasyHalfPPR,
-            requirement: .any,
-            title: "2009 QB — Scramble & sling",
-            detail: "Name a QB from 2009. Points = half-PPR fantasy from all QB stats."
-        ),
-        Template(
-            season: 2015,
-            position: .RB,
-            scoring: .rushingTouchdowns,
-            requirement: .any,
-            title: "2015 RB — Goal line",
-            detail: "Name an RB from 2015. Points = 6× rushing TDs."
-        ),
-        Template(
-            season: 2010,
-            position: .WR,
-            scoring: .receivingTouchdowns,
-            requirement: .any,
-            title: "2010 WR — End zone",
-            detail: "Name a WR from 2010. Points = 6× receiving TDs."
-        ),
-        Template(
-            season: 2008,
-            position: .QB,
-            scoring: .passingYards,
-            requirement: .any,
-            title: "2008 QB — Pure volume",
-            detail: "Name a QB from 2008. Points = passing yards."
-        ),
-        Template(
-            season: 2017,
-            position: .RB,
-            scoring: .rushingYards,
-            requirement: .any,
-            title: "2017 RB — Workhorse",
-            detail: "Name an RB from 2017. Points = rushing yards."
-        ),
-        Template(
-            season: 2019,
-            position: .WR,
-            scoring: .fantasyHalfPPR,
-            requirement: .any,
-            title: "2019 WR — Total package",
-            detail: "Name a WR from 2019. Points = half-PPR fantasy from WR stats."
-        ),
-        Template(
-            season: 2005,
-            position: .QB,
-            scoring: .passingTouchdowns,
-            requirement: .any,
-            title: "2005 QB — Scoring",
-            detail: "Name a QB from 2005. Points = 4× passing TDs."
-        ),
-        Template(
-            season: 2020,
-            position: .RB,
-            scoring: .fantasyHalfPPR,
-            requirement: .any,
-            title: "2020 RB — Weird year, real points",
-            detail: "Name an RB from 2020. Points = half-PPR fantasy."
-        ),
-    ]
+    private static let pool: [Template] = makePool()
 
     static func makePrompts(roundCount: Int) -> [Prompt] {
         let count = min(max(roundCount, 4), pool.count)
@@ -255,5 +46,76 @@ enum PromptFactory {
 
     private static func templateKey(_ template: Template) -> String {
         "\(template.season)|\(template.position.rawValue)|\(template.scoring.rawValue)|\(template.title)"
+    }
+
+    private static func makePool() -> [Template] {
+        var templates: [Template] = []
+
+        func add(
+            _ season: Int,
+            _ position: Position,
+            _ scoring: ScoringRule,
+            _ requirement: PromptRequirement = .any,
+            _ title: String,
+            _ detail: String
+        ) {
+            templates.append(
+                Template(
+                    season: season,
+                    position: position,
+                    scoring: scoring,
+                    requirement: requirement,
+                    title: title,
+                    detail: detail
+                )
+            )
+        }
+
+        let baselineYears = [2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020]
+
+        for year in baselineYears {
+            add(year, .QB, .passingYards, .any, "\(year) QB — Air yards", "Name a QB from \(year). Points = passing yards.")
+            add(year, .QB, .passingTouchdowns, .any, "\(year) QB — TD race", "Name a QB from \(year). Points = 4× passing TDs.")
+        }
+        for year in [2006, 2012, 2015, 2017, 2020] {
+            add(year, .RB, .rushingYards, .any, "\(year) RB — Ground game", "Name an RB from \(year). Points = rushing yards.")
+            add(year, .RB, .rushingTouchdowns, .any, "\(year) RB — Goal line", "Name an RB from \(year). Points = 6× rushing TDs.")
+            add(year, .RB, .fantasyHalfPPR, .any, "\(year) RB — All around", "Name an RB from \(year). Points = half-PPR fantasy.")
+        }
+        for year in [2010, 2014, 2018, 2019, 2020] {
+            add(year, .WR, .receivingYards, .any, "\(year) WR — Big plays", "Name a WR from \(year). Points = receiving yards.")
+            add(year, .WR, .receptions, .any, "\(year) WR — PPR style", "Name a WR from \(year). Points = 0.5× receptions.")
+            add(year, .WR, .receivingTouchdowns, .any, "\(year) WR — End zone", "Name a WR from \(year). Points = 6× receiving TDs.")
+        }
+        for year in [2013, 2016, 2018, 2019, 2020] {
+            add(year, .TE, .receivingYards, .any, "\(year) TE — Chain mover", "Name a TE from \(year). Points = receiving yards.")
+            add(year, .TE, .receivingTouchdowns, .any, "\(year) TE — Red zone", "Name a TE from \(year). Points = 6× receiving TDs.")
+            add(year, .TE, .receptions, .any, "\(year) TE — Volume", "Name a TE from \(year). Points = 0.5× receptions.")
+        }
+
+        // Team-based prompts using any-career affiliation to avoid one-player traps.
+        add(2018, .QB, .passingTouchdowns, .playedForTeamAnyCareer("KC"), "2018 QB with Chiefs history", "Name a QB from 2018 who played for KC at any point in their career. Points = 4× passing TDs.")
+        add(2016, .QB, .fantasyHalfPPR, .playedForTeamAnyCareer("ATL"), "2016 QB with Falcons history", "Name a QB from 2016 who played for ATL at any point in their career. Points = half-PPR fantasy.")
+        add(2019, .WR, .receivingYards, .playedForTeamAnyCareer("TB"), "2019 WR with Bucs history", "Name a WR from 2019 who played for TB at any point in their career. Points = receiving yards.")
+        add(2020, .TE, .receivingTouchdowns, .playedForTeamAnyCareer("KC"), "2020 TE with Chiefs history", "Name a TE from 2020 who played for KC at any point in their career. Points = 6× receiving TDs.")
+        add(2017, .RB, .rushingTouchdowns, .playedForTeamAnyCareer("LA"), "2017 RB with Rams history", "Name an RB from 2017 who played for LA at any point in their career. Points = 6× rushing TDs.")
+
+        // Birth-year novelty prompts.
+        add(2020, .WR, .receptions, .bornInYear(1999), "2020 WR born in 1999", "Name a WR from 2020 born in 1999. Points = 0.5× receptions.")
+        add(2020, .RB, .fantasyHalfPPR, .bornInYear(1995), "2020 RB born in 1995", "Name an RB from 2020 born in 1995. Points = half-PPR fantasy.")
+        add(2019, .QB, .passingYards, .bornInYear(1995), "2019 QB born in 1995", "Name a QB from 2019 born in 1995. Points = passing yards.")
+        add(2018, .TE, .receptions, .bornInYear(1989), "2018 TE born in 1989", "Name a TE from 2018 born in 1989. Points = 0.5× receptions.")
+
+        // Over/under style categories for extra uniqueness.
+        add(2018, .QB, .passingYards, .statAtLeast(.passingYards, 4000), "2018 QB 4k club", "Name a QB from 2018 with at least 4,000 passing yards. Points = passing yards.")
+        add(2019, .QB, .passingTouchdowns, .statAtMost(.interceptions, 10), "2019 QB careful passer", "Name a QB from 2019 with 10 or fewer interceptions. Points = 4× passing TDs.")
+        add(2017, .RB, .rushingYards, .statAtLeast(.rushingYards, 1000), "2017 RB 1k rusher", "Name an RB from 2017 with at least 1,000 rushing yards. Points = rushing yards.")
+        add(2020, .RB, .fantasyHalfPPR, .statAtLeast(.receptions, 45), "2020 RB pass-game role", "Name an RB from 2020 with at least 45 receptions. Points = half-PPR fantasy.")
+        add(2019, .WR, .receivingYards, .statAtLeast(.receivingYards, 1000), "2019 WR 1k season", "Name a WR from 2019 with at least 1,000 receiving yards. Points = receiving yards.")
+        add(2018, .WR, .receivingTouchdowns, .statAtLeast(.receivingTouchdowns, 8), "2018 WR touchdown threat", "Name a WR from 2018 with at least 8 receiving TDs. Points = 6× receiving TDs.")
+        add(2020, .TE, .receivingYards, .statAtLeast(.receivingYards, 600), "2020 TE 600+ yards", "Name a TE from 2020 with at least 600 receiving yards. Points = receiving yards.")
+        add(2016, .TE, .receivingTouchdowns, .statAtMost(.receivingTouchdowns, 5), "2016 TE under-6 TD", "Name a TE from 2016 with 5 or fewer receiving TDs. Points = 6× receiving TDs.")
+
+        return templates
     }
 }

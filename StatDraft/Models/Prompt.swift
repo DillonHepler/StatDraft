@@ -79,17 +79,26 @@ struct Prompt: Identifiable, Codable, Equatable {
 
 enum PromptRequirement: Codable, Equatable {
     case any
-    case playedForTeam(String)
+    case playedForTeamInSeason(String)
+    case playedForTeamAnyCareer(String)
     case bornInYear(Int)
+    case statAtLeast(StatMetric, Int)
+    case statAtMost(StatMetric, Int)
 
     func isSatisfied(player: PlayerRecord, line: SeasonStatLine) -> Bool {
         switch self {
         case .any:
             return true
-        case .playedForTeam(let team):
+        case .playedForTeamInSeason(let team):
             return line.team?.caseInsensitiveCompare(team) == .orderedSame
+        case .playedForTeamAnyCareer(let team):
+            return player.playedForTeamInCareer(team)
         case .bornInYear(let year):
             return player.birthYear == year
+        case .statAtLeast(let metric, let threshold):
+            return metric.value(from: line) >= threshold
+        case .statAtMost(let metric, let threshold):
+            return metric.value(from: line) <= threshold
         }
     }
 
@@ -97,10 +106,53 @@ enum PromptRequirement: Codable, Equatable {
         switch self {
         case .any:
             return "That pick does not match this round's rule."
-        case .playedForTeam(let team):
+        case .playedForTeamInSeason(let team):
             return "That player did not play for \(team) in that season."
+        case .playedForTeamAnyCareer(let team):
+            return "That player never played for \(team) at any point in their career."
         case .bornInYear(let year):
             return "That player was not born in \(year)."
+        case .statAtLeast(let metric, let threshold):
+            return "That player did not hit at least \(threshold) \(metric.displayName) in that season."
+        case .statAtMost(let metric, let threshold):
+            return "That player had more than \(threshold) \(metric.displayName) in that season."
+        }
+    }
+}
+
+enum StatMetric: String, Codable, Equatable {
+    case passingYards
+    case passingTouchdowns
+    case interceptions
+    case rushingYards
+    case rushingTouchdowns
+    case receptions
+    case receivingYards
+    case receivingTouchdowns
+
+    func value(from line: SeasonStatLine) -> Int {
+        switch self {
+        case .passingYards: return line.passingYards
+        case .passingTouchdowns: return line.passingTD
+        case .interceptions: return line.interceptions
+        case .rushingYards: return line.rushingYards
+        case .rushingTouchdowns: return line.rushingTD
+        case .receptions: return line.receptions
+        case .receivingYards: return line.receivingYards
+        case .receivingTouchdowns: return line.receivingTD
+        }
+    }
+
+    var displayName: String {
+        switch self {
+        case .passingYards: return "passing yards"
+        case .passingTouchdowns: return "passing TDs"
+        case .interceptions: return "interceptions"
+        case .rushingYards: return "rushing yards"
+        case .rushingTouchdowns: return "rushing TDs"
+        case .receptions: return "receptions"
+        case .receivingYards: return "receiving yards"
+        case .receivingTouchdowns: return "receiving TDs"
         }
     }
 }

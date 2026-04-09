@@ -94,6 +94,10 @@ enum PromptRequirement: Codable, Equatable {
     case alliterativeName
     case superBowlWinsAtLeast(Int)
     case superBowlWinsExactly(Int)
+    case draftedAfterRound(Int)
+    case attendedCollege(String)
+    case playedForAtLeastTeams(Int)
+    case playedForExactlyTeams(Int)
 
     func isSatisfied(player: PlayerRecord, line: SeasonStatLine) -> Bool {
         switch self {
@@ -131,6 +135,15 @@ enum PromptRequirement: Codable, Equatable {
             return (player.superBowlWins ?? 0) >= wins
         case .superBowlWinsExactly(let wins):
             return (player.superBowlWins ?? 0) == wins
+        case .draftedAfterRound(let round):
+            guard let draftRound = player.draftRound else { return false }
+            return draftRound > round
+        case .attendedCollege(let college):
+            return player.collegeName?.caseInsensitiveCompare(college) == .orderedSame
+        case .playedForAtLeastTeams(let count):
+            return player.distinctTeamCount >= count
+        case .playedForExactlyTeams(let count):
+            return player.distinctTeamCount == count
         }
     }
 
@@ -168,6 +181,14 @@ enum PromptRequirement: Codable, Equatable {
             return "That player does not have \(wins)+ Super Bowl wins."
         case .superBowlWinsExactly(let wins):
             return "That player does not have exactly \(wins) Super Bowl wins."
+        case .draftedAfterRound(let round):
+            return "That player was not drafted after round \(round)."
+        case .attendedCollege(let college):
+            return "That player did not attend \(college)."
+        case .playedForAtLeastTeams(let count):
+            return "That player did not play for at least \(count) teams."
+        case .playedForExactlyTeams(let count):
+            return "That player did not play for exactly \(count) teams."
         }
     }
 }

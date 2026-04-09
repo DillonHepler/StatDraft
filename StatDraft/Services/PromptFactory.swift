@@ -11,13 +11,13 @@ enum PromptFactory {
         let detail: String
     }
 
-    private static let minEligibleForConstraint = 8
+    private static let minEligibleForConstraint = 5
     private static let pool: [Template] = makePool()
 
     static func makePrompts(
         roundCount: Int,
         stats: StatsRepository?,
-        minimumEligibleAnswers: Int = 2
+        minimumEligibleAnswers: Int = 5
     ) -> [Prompt] {
         let viablePool = filteredPool(using: stats, minimumEligibleAnswers: minimumEligibleAnswers)
         let count = min(max(roundCount, 4), viablePool.count)
@@ -81,7 +81,7 @@ enum PromptFactory {
         minimumEligibleAnswers: Int
     ) -> [Template] {
         guard let stats else { return pool }
-        let requiredAnswers = max(2, minimumEligibleAnswers)
+        let requiredAnswers = max(5, minimumEligibleAnswers)
         let constrained = pool.filter { !isPlainTemplate($0) }.filter { template in
             stats.eligiblePlayerCount(
                 season: template.season,
@@ -260,6 +260,34 @@ enum PromptFactory {
             add(year, .TE, .receivingYards, .superBowlWinsAtLeast(2), "\(year) TE 2+ rings", "Name a TE from \(year) with 2+ Super Bowl wins. Points = receiving yards.")
         }
 
+        // College prompts.
+        let colleges = [
+            "Alabama", "Georgia", "LSU", "Ohio State", "Michigan", "USC", "Clemson", "Notre Dame",
+            "Oklahoma", "Texas", "Penn State", "Florida", "Oregon", "Wisconsin", "Iowa"
+        ]
+        for year in [2008, 2012, 2016, 2020, 2024] {
+            for college in colleges {
+                add(year, .QB, .passingYards, .attendedCollege(college), "\(year) QB from \(college)", "Name a QB from \(year) who attended \(college). Points = passing yards.")
+                add(year, .RB, .rushingYards, .attendedCollege(college), "\(year) RB from \(college)", "Name an RB from \(year) who attended \(college). Points = rushing yards.")
+                add(year, .WR, .receivingYards, .attendedCollege(college), "\(year) WR from \(college)", "Name a WR from \(year) who attended \(college). Points = receiving yards.")
+                add(year, .TE, .receivingTouchdowns, .attendedCollege(college), "\(year) TE from \(college)", "Name a TE from \(year) who attended \(college). Points = 6× receiving TDs.")
+            }
+        }
+
+        // Team-count prompts.
+        for year in [2008, 2012, 2016, 2020, 2024] {
+            for teamCount in [2, 3, 4, 5] {
+                add(year, .QB, .passingTouchdowns, .playedForAtLeastTeams(teamCount), "\(year) QB played for \(teamCount)+ teams", "Name a QB from \(year) who played for at least \(teamCount) teams. Points = 4× passing TDs.")
+                add(year, .RB, .fantasyHalfPPR, .playedForAtLeastTeams(teamCount), "\(year) RB played for \(teamCount)+ teams", "Name an RB from \(year) who played for at least \(teamCount) teams. Points = half-PPR fantasy.")
+                add(year, .WR, .receivingYards, .playedForAtLeastTeams(teamCount), "\(year) WR played for \(teamCount)+ teams", "Name a WR from \(year) who played for at least \(teamCount) teams. Points = receiving yards.")
+                add(year, .TE, .receptions, .playedForAtLeastTeams(teamCount), "\(year) TE played for \(teamCount)+ teams", "Name a TE from \(year) who played for at least \(teamCount) teams. Points = 0.5× receptions.")
+            }
+            for exactCount in [1, 2, 3] {
+                add(year, .QB, .passingYards, .playedForExactlyTeams(exactCount), "\(year) QB exactly \(exactCount) teams", "Name a QB from \(year) who played for exactly \(exactCount) teams. Points = passing yards.")
+                add(year, .WR, .receivingTouchdowns, .playedForExactlyTeams(exactCount), "\(year) WR exactly \(exactCount) teams", "Name a WR from \(year) who played for exactly \(exactCount) teams. Points = 6× receiving TDs.")
+            }
+        }
+
         // Draft-oriented prompts. Season is where scoring comes from; draft filter checks career metadata.
         for season in [2008, 2012, 2016, 2020, 2024] {
             for draftYear in stride(from: 1970, through: 2024, by: 6) {
@@ -274,6 +302,10 @@ enum PromptFactory {
                 add(season, .WR, .receivingTouchdowns, .draftedInRound(round), "\(season) WR round \(round) pick", "Name a WR from \(season) drafted in round \(round). Points = 6× receiving TDs.")
                 add(season, .TE, .receptions, .draftedInRound(round), "\(season) TE round \(round) pick", "Name a TE from \(season) drafted in round \(round). Points = 0.5× receptions.")
             }
+            add(season, .QB, .passingTouchdowns, .draftedAfterRound(2), "\(season) QB drafted after round 2", "Name a QB from \(season) drafted after round 2. Points = 4× passing TDs.")
+            add(season, .RB, .fantasyHalfPPR, .draftedAfterRound(2), "\(season) RB drafted after round 2", "Name an RB from \(season) drafted after round 2. Points = half-PPR fantasy.")
+            add(season, .WR, .receivingYards, .draftedAfterRound(2), "\(season) WR drafted after round 2", "Name a WR from \(season) drafted after round 2. Points = receiving yards.")
+            add(season, .TE, .receivingYards, .draftedAfterRound(2), "\(season) TE drafted after round 2", "Name a TE from \(season) drafted after round 2. Points = receiving yards.")
             add(season, .QB, .passingYards, .draftedAtPickAtMost(32), "\(season) QB first-rounder", "Name a QB from \(season) drafted in the first round (pick 1-32). Points = passing yards.")
             add(season, .RB, .rushingYards, .draftedAtPickAtMost(32), "\(season) RB first-rounder", "Name an RB from \(season) drafted in the first round (pick 1-32). Points = rushing yards.")
             add(season, .WR, .receivingYards, .draftedAtPickAtMost(32), "\(season) WR first-rounder", "Name a WR from \(season) drafted in the first round (pick 1-32). Points = receiving yards.")

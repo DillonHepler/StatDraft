@@ -24,6 +24,8 @@ struct PlayerRecord: Codable, Identifiable, Equatable {
     let draftRound: Int?
     let draftPick: Int?
     let superBowlWins: Int?
+    let collegeName: String?
+    let careerTeams: [String]?
     /// Key is season year as string e.g. "2007"
     var seasons: [String: SeasonStatLine]
 
@@ -32,9 +34,19 @@ struct PlayerRecord: Codable, Identifiable, Equatable {
     }
 
     func playedForTeamInCareer(_ team: String) -> Bool {
+        if let careerTeams, !careerTeams.isEmpty {
+            return careerTeams.contains { $0.caseInsensitiveCompare(team) == .orderedSame }
+        }
         seasons.values.contains { line in
             line.team?.caseInsensitiveCompare(team) == .orderedSame
         }
+    }
+
+    var distinctTeamCount: Int {
+        if let careerTeams, !careerTeams.isEmpty {
+            return Set(careerTeams.map { $0.uppercased() }).count
+        }
+        return Set(seasons.values.compactMap(\.team).map { $0.uppercased() }).count
     }
 
     func startsWith(letter: String) -> Bool {

@@ -10,7 +10,7 @@ import pandas as pd
 
 
 MIN_SEASON = 1999
-MAX_SEASON = 2024
+MAX_SEASON = 2025
 
 
 def main() -> None:
@@ -91,13 +91,15 @@ def main() -> None:
 
     players_ref = pd.read_parquet(
         players_source,
-        columns=["gsis_id", "birth_date", "draft_year", "draft_round", "draft_pick"]
+        columns=["gsis_id", "birth_date", "draft_year", "draft_round", "draft_pick", "latest_team", "college_name"]
     )
     players_ref["birth_date"] = players_ref["birth_date"].astype(str)
     players_ref["birth_year"] = pd.to_numeric(players_ref["birth_date"].str[:4], errors="coerce")
     players_ref["draft_year"] = pd.to_numeric(players_ref["draft_year"], errors="coerce")
     players_ref["draft_round"] = pd.to_numeric(players_ref["draft_round"], errors="coerce")
     players_ref["draft_pick"] = pd.to_numeric(players_ref["draft_pick"], errors="coerce")
+    players_ref["latest_team"] = players_ref["latest_team"].fillna("").astype(str).str.strip()
+    players_ref["college_name"] = players_ref["college_name"].fillna("").astype(str).str.strip()
     birth_year_by_id = {
         str(row.gsis_id): int(row.birth_year)
         for row in players_ref.itertuples(index=False)
@@ -111,6 +113,16 @@ def main() -> None:
         )
         for row in players_ref.itertuples(index=False)
         if pd.notna(row.gsis_id)
+    }
+    latest_team_by_id = {
+        str(row.gsis_id): str(row.latest_team).strip()
+        for row in players_ref.itertuples(index=False)
+        if pd.notna(row.gsis_id) and str(row.latest_team).strip()
+    }
+    college_by_id = {
+        str(row.gsis_id): str(row.college_name).strip()
+        for row in players_ref.itertuples(index=False)
+        if pd.notna(row.gsis_id) and str(row.college_name).strip()
     }
 
     champion_teams_by_season = {
@@ -185,6 +197,14 @@ def main() -> None:
     for player_id, seasons in sorted(seasons_by_player.items(), key=lambda kv: names_by_player[kv[0]].lower()):
         name = names_by_player[player_id]
         aliases = build_aliases(name)
+        season_teams = {
+            (line.get("team") or "").strip().upper()
+            for line in seasons.values()
+            if (line.get("team") or "").strip()
+        }
+        latest_team = latest_team_by_id.get(player_id, "").strip().upper()
+        if latest_team:
+            season_teams.add(latest_team)
         players_payload.append(
             {
                 "id": sanitize_id(player_id, name),
@@ -195,6 +215,8 @@ def main() -> None:
                 "draftRound": draft_info_by_id.get(player_id, (None, None, None))[1],
                 "draftPick": draft_info_by_id.get(player_id, (None, None, None))[2],
                 "superBowlWins": super_bowl_wins_by_id.get(player_id, 0),
+                "collegeName": college_by_id.get(player_id),
+                "careerTeams": sorted(season_teams),
                 "seasons": seasons,
             }
         )

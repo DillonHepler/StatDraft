@@ -57,7 +57,7 @@ final class DraftGame: ObservableObject {
     func configureLobby(playerNames: [String], rounds: Int) {
         let trimmed = playerNames.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
         seats = trimmed.map { PlayerSeat(name: $0) }
-        let minimumEligibleAnswers = max(2, seats.count)
+        let minimumEligibleAnswers = max(5, seats.count)
         prompts = PromptFactory.makePrompts(
             roundCount: rounds,
             stats: stats,

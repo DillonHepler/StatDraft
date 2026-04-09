@@ -6,26 +6,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-PROMPT_BUCKETS = [
-    (2007, "QB"),
-    (2011, "QB"),
-    (2006, "RB"),
-    (2012, "RB"),
-    (2014, "WR"),
-    (2018, "WR"),
-    (2013, "TE"),
-    (2009, "QB"),
-    (2015, "RB"),
-    (2010, "WR"),
-    (2016, "TE"),
-    (2008, "QB"),
-    (2017, "RB"),
-    (2019, "WR"),
-    (2005, "QB"),
-    (2020, "RB"),
-]
-
-
 def main() -> None:
     path = Path("StatDraft/Resources/demo_stats.json")
     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -51,6 +31,12 @@ def main() -> None:
         assert isinstance(player["aliases"], list) and player["aliases"]
         if player.get("birthYear") is not None:
             assert isinstance(player["birthYear"], int)
+        if player.get("draftYear") is not None:
+            assert isinstance(player["draftYear"], int)
+        if player.get("draftRound") is not None:
+            assert isinstance(player["draftRound"], int)
+        if player.get("draftPick") is not None:
+            assert isinstance(player["draftPick"], int)
         assert isinstance(player["seasons"], dict) and player["seasons"]
         for season, line in player["seasons"].items():
             int(season)
@@ -60,17 +46,9 @@ def main() -> None:
             for key in int_keys:
                 assert isinstance(line[key], int), f"Bad {key} for {player['id']} {season}"
 
+    all_years = sorted({int(y) for player in players for y in player["seasons"].keys()})
     print(f"Players: {len(players)}")
-    min_coverage = 10_000
-    for season, position in PROMPT_BUCKETS:
-        count = 0
-        for player in players:
-            line = player["seasons"].get(str(season))
-            if line and line["position"] == position:
-                count += 1
-        min_coverage = min(min_coverage, count)
-        print(f"{season} {position}: {count}")
-    print(f"Minimum coverage: {min_coverage}")
+    print(f"Season coverage: {all_years[0]}-{all_years[-1]}")
 
 
 if __name__ == "__main__":

@@ -9,24 +9,8 @@ from pathlib import Path
 import pandas as pd
 
 
-PROMPT_BUCKETS = [
-    (2007, "QB"),
-    (2011, "QB"),
-    (2006, "RB"),
-    (2012, "RB"),
-    (2014, "WR"),
-    (2018, "WR"),
-    (2013, "TE"),
-    (2009, "QB"),
-    (2015, "RB"),
-    (2010, "WR"),
-    (2016, "TE"),
-    (2008, "QB"),
-    (2017, "RB"),
-    (2019, "WR"),
-    (2005, "QB"),
-    (2020, "RB"),
-]
+MIN_SEASON = 1999
+MAX_SEASON = 2024
 
 
 def main() -> None:
@@ -47,7 +31,6 @@ def main() -> None:
             "-o data/players.parquet"
         )
 
-    years = sorted({year for year, _ in PROMPT_BUCKETS})
     weekly_cols = [
         "season",
         "week",
@@ -67,7 +50,7 @@ def main() -> None:
         "receiving_tds",
     ]
     weekly = pd.read_parquet(source, columns=weekly_cols)
-    weekly = weekly[weekly["season"].isin(years)]
+    weekly = weekly[(weekly["season"] >= MIN_SEASON) & (weekly["season"] <= MAX_SEASON)]
     weekly = weekly[weekly["season_type"] == "REG"]
     weekly = weekly[weekly["position"].isin(["QB", "RB", "WR", "TE"])].copy()
     weekly["player_name"] = weekly["player_display_name"].fillna(weekly["player_name"])
@@ -106,13 +89,28 @@ def main() -> None:
     )
     playable = grouped.copy()
 
-    players_ref = pd.read_parquet(players_source, columns=["gsis_id", "birth_date"])
+    players_ref = pd.read_parquet(
+        players_source,
+        columns=["gsis_id", "birth_date", "draft_year", "draft_round", "draft_pick"]
+    )
     players_ref["birth_date"] = players_ref["birth_date"].astype(str)
     players_ref["birth_year"] = pd.to_numeric(players_ref["birth_date"].str[:4], errors="coerce")
+    players_ref["draft_year"] = pd.to_numeric(players_ref["draft_year"], errors="coerce")
+    players_ref["draft_round"] = pd.to_numeric(players_ref["draft_round"], errors="coerce")
+    players_ref["draft_pick"] = pd.to_numeric(players_ref["draft_pick"], errors="coerce")
     birth_year_by_id = {
         str(row.gsis_id): int(row.birth_year)
         for row in players_ref.itertuples(index=False)
         if pd.notna(row.gsis_id) and pd.notna(row.birth_year)
+    }
+    draft_info_by_id = {
+        str(row.gsis_id): (
+            int(row.draft_year) if pd.notna(row.draft_year) else None,
+            int(row.draft_round) if pd.notna(row.draft_round) else None,
+            int(row.draft_pick) if pd.notna(row.draft_pick) else None,
+        )
+        for row in players_ref.itertuples(index=False)
+        if pd.notna(row.gsis_id)
     }
 
     seasons_by_player: dict[str, dict[str, dict[str, int | str]]] = {}
@@ -151,6 +149,9 @@ def main() -> None:
                 "displayName": name,
                 "aliases": aliases,
                 "birthYear": birth_year_by_id.get(player_id),
+                "draftYear": draft_info_by_id.get(player_id, (None, None, None))[0],
+                "draftRound": draft_info_by_id.get(player_id, (None, None, None))[1],
+                "draftPick": draft_info_by_id.get(player_id, (None, None, None))[2],
                 "seasons": seasons,
             }
         )
@@ -159,11 +160,8 @@ def main() -> None:
     out = Path("StatDraft/Resources/demo_stats.json")
     out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
-    coverage = compute_coverage(players_payload)
     print(f"Built players: {len(players_payload)}")
-    for year, pos in PROMPT_BUCKETS:
-        key = f"{year}_{pos}"
-        print(f"{year} {pos}: {coverage.get(key, 0)}")
+    print(f"Season range: {MIN_SEASON}-{MAX_SEASON}")
 
 
 def build_aliases(name: str) -> list[str]:
@@ -189,18 +187,6 @@ def sanitize_id(player_id: str, fallback_name: str) -> str:
     if value:
         return value
     return fallback_name.strip().lower().replace(" ", "_")
-
-
-def compute_coverage(players_payload: list[dict]) -> dict[str, int]:
-    coverage: dict[str, int] = {}
-    for year, pos in PROMPT_BUCKETS:
-        c = 0
-        for player in players_payload:
-            line = player["seasons"].get(str(year))
-            if line and line["position"] == pos:
-                c += 1
-        coverage[f"{year}_{pos}"] = c
-    return coverage
 
 
 def _mode_or_empty(series: pd.Series) -> str:

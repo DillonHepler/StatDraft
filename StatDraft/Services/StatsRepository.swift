@@ -87,6 +87,15 @@ final class StatsRepository {
         playersById[id]
     }
 
+    func eligiblePlayerCount(season: Int, position: Position, requirement: PromptRequirement) -> Int {
+        allPlayers.reduce(into: 0) { count, player in
+            guard let line = player.line(for: season), line.position == position else { return }
+            if requirement.isSatisfied(player: player, line: line) {
+                count += 1
+            }
+        }
+    }
+
     private func resolvePlayer(from rawQuery: String, season: Int, requiredPosition: Position) -> PlayerRecord? {
         let query = normalized(rawQuery)
         if query.isEmpty { return nil }

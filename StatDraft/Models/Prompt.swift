@@ -86,6 +86,10 @@ enum PromptRequirement: Codable, Equatable {
     case statAtMost(StatMetric, Int)
     case playedForTeamAnyCareerAndStatAtLeast(String, StatMetric, Int)
     case playedForTeamAnyCareerAndStatAtMost(String, StatMetric, Int)
+    case draftedInYear(Int)
+    case draftedInRound(Int)
+    case draftedAtPickAtMost(Int)
+    case draftedAtPickRange(Int, Int)
 
     func isSatisfied(player: PlayerRecord, line: SeasonStatLine) -> Bool {
         switch self {
@@ -105,6 +109,16 @@ enum PromptRequirement: Codable, Equatable {
             return player.playedForTeamInCareer(team) && metric.value(from: line) >= threshold
         case .playedForTeamAnyCareerAndStatAtMost(let team, let metric, let threshold):
             return player.playedForTeamInCareer(team) && metric.value(from: line) <= threshold
+        case .draftedInYear(let year):
+            return player.draftYear == year
+        case .draftedInRound(let round):
+            return player.draftRound == round
+        case .draftedAtPickAtMost(let pick):
+            guard let draftPick = player.draftPick else { return false }
+            return draftPick <= pick
+        case .draftedAtPickRange(let low, let high):
+            guard let draftPick = player.draftPick else { return false }
+            return draftPick >= low && draftPick <= high
         }
     }
 
@@ -126,6 +140,14 @@ enum PromptRequirement: Codable, Equatable {
             return "That player must have played for \(team) in their career and hit at least \(threshold) \(metric.displayName) in that season."
         case .playedForTeamAnyCareerAndStatAtMost(let team, let metric, let threshold):
             return "That player must have played for \(team) in their career and have at most \(threshold) \(metric.displayName) in that season."
+        case .draftedInYear(let year):
+            return "That player was not drafted in \(year)."
+        case .draftedInRound(let round):
+            return "That player was not drafted in round \(round)."
+        case .draftedAtPickAtMost(let pick):
+            return "That player was not drafted within the first \(pick) picks."
+        case .draftedAtPickRange(let low, let high):
+            return "That player was not drafted between picks \(low) and \(high)."
         }
     }
 }

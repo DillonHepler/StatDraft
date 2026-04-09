@@ -20,6 +20,9 @@ struct PlayerRecord: Codable, Identifiable, Equatable {
     let displayName: String
     let aliases: [String]
     let birthYear: Int?
+    let draftYear: Int?
+    let draftRound: Int?
+    let draftPick: Int?
     /// Key is season year as string e.g. "2007"
     var seasons: [String: SeasonStatLine]
 

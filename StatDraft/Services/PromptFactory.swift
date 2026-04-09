@@ -14,8 +14,12 @@ enum PromptFactory {
     private static let minEligibleForConstraint = 8
     private static let pool: [Template] = makePool()
 
-    static func makePrompts(roundCount: Int, stats: StatsRepository?) -> [Prompt] {
-        let viablePool = filteredPool(using: stats)
+    static func makePrompts(
+        roundCount: Int,
+        stats: StatsRepository?,
+        minimumEligibleAnswers: Int = 2
+    ) -> [Prompt] {
+        let viablePool = filteredPool(using: stats, minimumEligibleAnswers: minimumEligibleAnswers)
         let count = min(max(roundCount, 4), viablePool.count)
         var rng = SystemRandomNumberGenerator()
         let noveltyPool = viablePool.filter { !isPlainTemplate($0) }
@@ -72,16 +76,26 @@ enum PromptFactory {
         return false
     }
 
-    private static func filteredPool(using stats: StatsRepository?) -> [Template] {
+    private static func filteredPool(
+        using stats: StatsRepository?,
+        minimumEligibleAnswers: Int
+    ) -> [Template] {
         guard let stats else { return pool }
+        let requiredAnswers = max(2, minimumEligibleAnswers)
         let constrained = pool.filter { !isPlainTemplate($0) }.filter { template in
             stats.eligiblePlayerCount(
                 season: template.season,
                 position: template.position,
                 requirement: template.requirement
-            ) >= minEligibleForConstraint
+            ) >= max(minEligibleForConstraint, requiredAnswers)
         }
-        let baseline = pool.filter(isPlainTemplate)
+        let baseline = pool.filter(isPlainTemplate).filter { template in
+            stats.eligiblePlayerCount(
+                season: template.season,
+                position: template.position,
+                requirement: template.requirement
+            ) >= requiredAnswers
+        }
         let combined = constrained + baseline
         return combined.isEmpty ? pool : combined
     }

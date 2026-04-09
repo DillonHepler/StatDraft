@@ -107,6 +107,10 @@ final class DraftGame: ObservableObject {
                 lastError = "\(player.displayName) is already off the board."
                 return
             }
+            if !prompt.requirement.isSatisfied(player: player, line: line) {
+                lastError = prompt.requirement.failureMessage
+                return
+            }
 
             let points = prompt.scoringRule.points(for: line)
             let pick = DraftPick(

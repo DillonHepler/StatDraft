@@ -31,12 +31,20 @@ PROMPT_BUCKETS = [
 
 def main() -> None:
     source = Path("data/player_stats.parquet")
+    players_source = Path("data/players.parquet")
     if not source.exists():
         raise FileNotFoundError(
             "Missing data/player_stats.parquet. Download it first:\n"
             "curl -L "
             "\"https://github.com/nflverse/nflverse-data/releases/download/player_stats/player_stats.parquet\" "
             "-o data/player_stats.parquet"
+        )
+    if not players_source.exists():
+        raise FileNotFoundError(
+            "Missing data/players.parquet. Download it first:\n"
+            "curl -L "
+            "\"https://github.com/nflverse/nflverse-data/releases/download/players/players.parquet\" "
+            "-o data/players.parquet"
         )
 
     years = sorted({year for year, _ in PROMPT_BUCKETS})
@@ -48,6 +56,7 @@ def main() -> None:
         "player_name",
         "player_display_name",
         "position",
+        "recent_team",
         "passing_yards",
         "passing_tds",
         "interceptions",
@@ -63,6 +72,7 @@ def main() -> None:
     weekly = weekly[weekly["position"].isin(["QB", "RB", "WR", "TE"])].copy()
     weekly["player_name"] = weekly["player_display_name"].fillna(weekly["player_name"])
     weekly["player_name"] = weekly["player_name"].fillna("").astype(str).str.strip()
+    weekly["recent_team"] = weekly["recent_team"].fillna("").astype(str).str.strip()
     weekly = weekly[weekly["player_name"] != ""]
 
     numeric = [
@@ -79,9 +89,10 @@ def main() -> None:
         weekly[c] = pd.to_numeric(weekly[c], errors="coerce").fillna(0)
 
     grouped = (
-        weekly.groupby(["player_id", "player_name", "season", "position"], as_index=False)
+        weekly.groupby(["player_id", "player_name", "season", "position"], as_index=False, dropna=False)
         .agg(
             games=("week", "nunique"),
+            team=("recent_team", _mode_or_empty),
             passing_yards=("passing_yards", "sum"),
             passing_tds=("passing_tds", "sum"),
             interceptions=("interceptions", "sum"),
@@ -95,9 +106,17 @@ def main() -> None:
     )
     playable = grouped.copy()
 
+    players_ref = pd.read_parquet(players_source, columns=["gsis_id", "birth_date"])
+    players_ref["birth_date"] = players_ref["birth_date"].astype(str)
+    players_ref["birth_year"] = pd.to_numeric(players_ref["birth_date"].str[:4], errors="coerce")
+    birth_year_by_id = {
+        str(row.gsis_id): int(row.birth_year)
+        for row in players_ref.itertuples(index=False)
+        if pd.notna(row.gsis_id) and pd.notna(row.birth_year)
+    }
+
     seasons_by_player: dict[str, dict[str, dict[str, int | str]]] = {}
     names_by_player: dict[str, str] = {}
-    positions_by_player: dict[str, set[str]] = {}
 
     for row in playable.itertuples(index=False):
         player_id = str(row.player_id).strip()
@@ -108,6 +127,7 @@ def main() -> None:
         position = str(row.position).strip()
         line = {
             "position": position,
+            "team": str(row.team).strip() or None,
             "games": int(round(row.games)),
             "passingYards": int(round(row.passing_yards)),
             "passingTD": int(round(row.passing_tds)),
@@ -120,7 +140,6 @@ def main() -> None:
         }
         names_by_player[player_id] = name
         seasons_by_player.setdefault(player_id, {})[season_key] = line
-        positions_by_player.setdefault(player_id, set()).add(position)
 
     players_payload = []
     for player_id, seasons in sorted(seasons_by_player.items(), key=lambda kv: names_by_player[kv[0]].lower()):
@@ -131,6 +150,7 @@ def main() -> None:
                 "id": sanitize_id(player_id, name),
                 "displayName": name,
                 "aliases": aliases,
+                "birthYear": birth_year_by_id.get(player_id),
                 "seasons": seasons,
             }
         )
@@ -181,6 +201,17 @@ def compute_coverage(players_payload: list[dict]) -> dict[str, int]:
                 c += 1
         coverage[f"{year}_{pos}"] = c
     return coverage
+
+
+def _mode_or_empty(series: pd.Series) -> str:
+    cleaned = series.dropna().astype(str).str.strip()
+    cleaned = cleaned[cleaned != ""]
+    if cleaned.empty:
+        return ""
+    mode = cleaned.mode()
+    if mode.empty:
+        return ""
+    return str(mode.iloc[0])
 
 
 if __name__ == "__main__":

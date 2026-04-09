@@ -49,10 +49,14 @@ def main() -> None:
     for player in players:
         assert isinstance(player["displayName"], str) and player["displayName"].strip()
         assert isinstance(player["aliases"], list) and player["aliases"]
+        if player.get("birthYear") is not None:
+            assert isinstance(player["birthYear"], int)
         assert isinstance(player["seasons"], dict) and player["seasons"]
         for season, line in player["seasons"].items():
             int(season)
             assert line["position"] in valid_positions
+            if line.get("team") is not None:
+                assert isinstance(line["team"], str)
             for key in int_keys:
                 assert isinstance(line[key], int), f"Bad {key} for {player['id']} {season}"
 

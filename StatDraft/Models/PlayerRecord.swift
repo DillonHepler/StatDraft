@@ -3,6 +3,7 @@ import Foundation
 /// Per-season counting stats used for scoring (demo data; expand for production API).
 struct SeasonStatLine: Codable, Equatable {
     var position: Position
+    var team: String?
     var games: Int
     var passingYards: Int
     var passingTD: Int
@@ -18,6 +19,7 @@ struct PlayerRecord: Codable, Identifiable, Equatable {
     let id: String
     let displayName: String
     let aliases: [String]
+    let birthYear: Int?
     /// Key is season year as string e.g. "2007"
     var seasons: [String: SeasonStatLine]
 

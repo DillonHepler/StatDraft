@@ -52,6 +52,7 @@ struct Prompt: Identifiable, Codable, Equatable {
     let season: Int
     let position: Position
     let scoringRule: ScoringRule
+    let requirement: PromptRequirement
     let title: String
     let detail: String
 
@@ -61,6 +62,7 @@ struct Prompt: Identifiable, Codable, Equatable {
         season: Int,
         position: Position,
         scoringRule: ScoringRule,
+        requirement: PromptRequirement = .any,
         title: String,
         detail: String
     ) {
@@ -69,8 +71,37 @@ struct Prompt: Identifiable, Codable, Equatable {
         self.season = season
         self.position = position
         self.scoringRule = scoringRule
+        self.requirement = requirement
         self.title = title
         self.detail = detail
+    }
+}
+
+enum PromptRequirement: Codable, Equatable {
+    case any
+    case playedForTeam(String)
+    case bornInYear(Int)
+
+    func isSatisfied(player: PlayerRecord, line: SeasonStatLine) -> Bool {
+        switch self {
+        case .any:
+            return true
+        case .playedForTeam(let team):
+            return line.team?.caseInsensitiveCompare(team) == .orderedSame
+        case .bornInYear(let year):
+            return player.birthYear == year
+        }
+    }
+
+    var failureMessage: String {
+        switch self {
+        case .any:
+            return "That pick does not match this round's rule."
+        case .playedForTeam(let team):
+            return "That player did not play for \(team) in that season."
+        case .bornInYear(let year):
+            return "That player was not born in \(year)."
+        }
     }
 }
 

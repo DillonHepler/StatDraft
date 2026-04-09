@@ -10,6 +10,7 @@ This app uses bundled demo_stats.json generated from nflverse player stats.
 Regenerate locally:
   mkdir -p data
   curl -L "https://github.com/nflverse/nflverse-data/releases/download/player_stats/player_stats.parquet" -o data/player_stats.parquet
+  curl -L "https://github.com/nflverse/nflverse-data/releases/download/players/players.parquet" -o data/players.parquet
   python3 scripts/build_stats_db.py
   python3 scripts/validate_stats_db.py
 

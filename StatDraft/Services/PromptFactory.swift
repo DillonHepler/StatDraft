@@ -16,19 +16,34 @@ enum PromptFactory {
     static func makePrompts(roundCount: Int) -> [Prompt] {
         let count = min(max(roundCount, 4), pool.count)
         var rng = SystemRandomNumberGenerator()
+        let noveltyPool = pool.filter { !isPlainTemplate($0) }
+        let baselinePool = pool.filter(isPlainTemplate)
+
         var selected: [Template] = []
 
-        // Ensure baseline variety (including TE) so drafts don't miss positions.
+        // Ensure every position appears, preferring novelty prompts.
         for position in Position.allCases {
-            if let pick = pool.filter({ $0.position == position }).randomElement(using: &rng) {
+            if let pick = noveltyPool.filter({ $0.position == position }).randomElement(using: &rng)
+                ?? baselinePool.filter({ $0.position == position }).randomElement(using: &rng)
+            {
                 selected.append(pick)
             }
         }
 
+        let noveltyTarget = min(max(Int(Double(count) * 0.75), 1), count)
         let existingKeys = Set(selected.map(templateKey))
-        let remaining = pool.shuffled().filter { !existingKeys.contains(templateKey($0)) }
-        let needed = max(0, count - selected.count)
-        selected.append(contentsOf: remaining.prefix(needed))
+        var noveltyRemaining = noveltyPool.shuffled().filter { !existingKeys.contains(templateKey($0)) }
+        var baselineRemaining = baselinePool.shuffled().filter { !existingKeys.contains(templateKey($0)) }
+
+        while selected.count < min(noveltyTarget, count), !noveltyRemaining.isEmpty {
+            selected.append(noveltyRemaining.removeFirst())
+        }
+        while selected.count < count, !noveltyRemaining.isEmpty {
+            selected.append(noveltyRemaining.removeFirst())
+        }
+        while selected.count < count, !baselineRemaining.isEmpty {
+            selected.append(baselineRemaining.removeFirst())
+        }
         selected.shuffle()
 
         return selected.prefix(count).enumerated().map { idx, t in
@@ -46,6 +61,13 @@ enum PromptFactory {
 
     private static func templateKey(_ template: Template) -> String {
         "\(template.season)|\(template.position.rawValue)|\(template.scoring.rawValue)|\(template.title)"
+    }
+
+    private static func isPlainTemplate(_ template: Template) -> Bool {
+        if case .any = template.requirement {
+            return true
+        }
+        return false
     }
 
     private static func makePool() -> [Template] {
@@ -71,7 +93,7 @@ enum PromptFactory {
             )
         }
 
-        let baselineYears = [2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020]
+        let baselineYears = [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020]
 
         for year in baselineYears {
             add(year, .QB, .passingYards, .any, "\(year) QB — Air yards", "Name a QB from \(year). Points = passing yards.")
@@ -93,28 +115,104 @@ enum PromptFactory {
             add(year, .TE, .receptions, .any, "\(year) TE — Volume", "Name a TE from \(year). Points = 0.5× receptions.")
         }
 
-        // Team-based prompts using any-career affiliation to avoid one-player traps.
-        add(2018, .QB, .passingTouchdowns, .playedForTeamAnyCareer("KC"), "2018 QB with Chiefs history", "Name a QB from 2018 who played for KC at any point in their career. Points = 4× passing TDs.")
-        add(2016, .QB, .fantasyHalfPPR, .playedForTeamAnyCareer("ATL"), "2016 QB with Falcons history", "Name a QB from 2016 who played for ATL at any point in their career. Points = half-PPR fantasy.")
-        add(2019, .WR, .receivingYards, .playedForTeamAnyCareer("TB"), "2019 WR with Bucs history", "Name a WR from 2019 who played for TB at any point in their career. Points = receiving yards.")
-        add(2020, .TE, .receivingTouchdowns, .playedForTeamAnyCareer("KC"), "2020 TE with Chiefs history", "Name a TE from 2020 who played for KC at any point in their career. Points = 6× receiving TDs.")
-        add(2017, .RB, .rushingTouchdowns, .playedForTeamAnyCareer("LA"), "2017 RB with Rams history", "Name an RB from 2017 who played for LA at any point in their career. Points = 6× rushing TDs.")
+        let teamYears = [2016, 2017, 2018, 2019, 2020]
+        let teams = ["KC", "ATL", "TB", "LAC", "BUF", "DAL", "SEA", "GB", "SF", "PIT"]
+
+        for year in teamYears {
+            for team in teams {
+                add(
+                    year,
+                    .QB,
+                    .passingTouchdowns,
+                    .playedForTeamAnyCareer(team),
+                    "\(year) QB with \(team) history",
+                    "Name a QB from \(year) who played for \(team) at any point in their career. Points = 4× passing TDs."
+                )
+                add(
+                    year,
+                    .RB,
+                    .rushingYards,
+                    .playedForTeamAnyCareer(team),
+                    "\(year) RB with \(team) history",
+                    "Name an RB from \(year) who played for \(team) at any point in their career. Points = rushing yards."
+                )
+                add(
+                    year,
+                    .WR,
+                    .receivingYards,
+                    .playedForTeamAnyCareer(team),
+                    "\(year) WR with \(team) history",
+                    "Name a WR from \(year) who played for \(team) at any point in their career. Points = receiving yards."
+                )
+                add(
+                    year,
+                    .TE,
+                    .receivingTouchdowns,
+                    .playedForTeamAnyCareer(team),
+                    "\(year) TE with \(team) history",
+                    "Name a TE from \(year) who played for \(team) at any point in their career. Points = 6× receiving TDs."
+                )
+            }
+        }
 
         // Birth-year novelty prompts.
-        add(2020, .WR, .receptions, .bornInYear(1999), "2020 WR born in 1999", "Name a WR from 2020 born in 1999. Points = 0.5× receptions.")
-        add(2020, .RB, .fantasyHalfPPR, .bornInYear(1995), "2020 RB born in 1995", "Name an RB from 2020 born in 1995. Points = half-PPR fantasy.")
-        add(2019, .QB, .passingYards, .bornInYear(1995), "2019 QB born in 1995", "Name a QB from 2019 born in 1995. Points = passing yards.")
-        add(2018, .TE, .receptions, .bornInYear(1989), "2018 TE born in 1989", "Name a TE from 2018 born in 1989. Points = 0.5× receptions.")
+        let birthYears = [1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999]
+        for year in [2018, 2019, 2020] {
+            for birthYear in birthYears {
+                add(year, .QB, .passingYards, .bornInYear(birthYear), "\(year) QB born in \(birthYear)", "Name a QB from \(year) born in \(birthYear). Points = passing yards.")
+                add(year, .RB, .fantasyHalfPPR, .bornInYear(birthYear), "\(year) RB born in \(birthYear)", "Name an RB from \(year) born in \(birthYear). Points = half-PPR fantasy.")
+                add(year, .WR, .receptions, .bornInYear(birthYear), "\(year) WR born in \(birthYear)", "Name a WR from \(year) born in \(birthYear). Points = 0.5× receptions.")
+                add(year, .TE, .receivingYards, .bornInYear(birthYear), "\(year) TE born in \(birthYear)", "Name a TE from \(year) born in \(birthYear). Points = receiving yards.")
+            }
+        }
 
-        // Over/under style categories for extra uniqueness.
-        add(2018, .QB, .passingYards, .statAtLeast(.passingYards, 4000), "2018 QB 4k club", "Name a QB from 2018 with at least 4,000 passing yards. Points = passing yards.")
-        add(2019, .QB, .passingTouchdowns, .statAtMost(.interceptions, 10), "2019 QB careful passer", "Name a QB from 2019 with 10 or fewer interceptions. Points = 4× passing TDs.")
-        add(2017, .RB, .rushingYards, .statAtLeast(.rushingYards, 1000), "2017 RB 1k rusher", "Name an RB from 2017 with at least 1,000 rushing yards. Points = rushing yards.")
-        add(2020, .RB, .fantasyHalfPPR, .statAtLeast(.receptions, 45), "2020 RB pass-game role", "Name an RB from 2020 with at least 45 receptions. Points = half-PPR fantasy.")
-        add(2019, .WR, .receivingYards, .statAtLeast(.receivingYards, 1000), "2019 WR 1k season", "Name a WR from 2019 with at least 1,000 receiving yards. Points = receiving yards.")
-        add(2018, .WR, .receivingTouchdowns, .statAtLeast(.receivingTouchdowns, 8), "2018 WR touchdown threat", "Name a WR from 2018 with at least 8 receiving TDs. Points = 6× receiving TDs.")
-        add(2020, .TE, .receivingYards, .statAtLeast(.receivingYards, 600), "2020 TE 600+ yards", "Name a TE from 2020 with at least 600 receiving yards. Points = receiving yards.")
-        add(2016, .TE, .receivingTouchdowns, .statAtMost(.receivingTouchdowns, 5), "2016 TE under-6 TD", "Name a TE from 2016 with 5 or fewer receiving TDs. Points = 6× receiving TDs.")
+        // Over/under style categories and combo rules.
+        for year in [2017, 2018, 2019, 2020] {
+            for threshold in [3200, 3600, 4000] {
+                add(year, .QB, .passingYards, .statAtLeast(.passingYards, threshold), "\(year) QB \(threshold)+ pass yards", "Name a QB from \(year) with at least \(threshold) passing yards. Points = passing yards.")
+            }
+            for threshold in [8, 10, 12] {
+                add(year, .QB, .passingTouchdowns, .statAtMost(.interceptions, threshold), "\(year) QB <=\(threshold) INT", "Name a QB from \(year) with \(threshold) or fewer interceptions. Points = 4× passing TDs.")
+            }
+            for threshold in [800, 1000, 1200] {
+                add(year, .RB, .rushingYards, .statAtLeast(.rushingYards, threshold), "\(year) RB \(threshold)+ rush yards", "Name an RB from \(year) with at least \(threshold) rushing yards. Points = rushing yards.")
+            }
+            for threshold in [35, 45, 55] {
+                add(year, .RB, .fantasyHalfPPR, .statAtLeast(.receptions, threshold), "\(year) RB \(threshold)+ catches", "Name an RB from \(year) with at least \(threshold) receptions. Points = half-PPR fantasy.")
+            }
+            for threshold in [900, 1000, 1200] {
+                add(year, .WR, .receivingYards, .statAtLeast(.receivingYards, threshold), "\(year) WR \(threshold)+ rec yards", "Name a WR from \(year) with at least \(threshold) receiving yards. Points = receiving yards.")
+                add(year, .WR, .receivingYards, .statAtMost(.receivingYards, threshold), "\(year) WR under \(threshold) rec yards", "Name a WR from \(year) with at most \(threshold) receiving yards. Points = receiving yards.")
+            }
+            for threshold in [6, 8, 10] {
+                add(year, .WR, .receivingTouchdowns, .statAtLeast(.receivingTouchdowns, threshold), "\(year) WR \(threshold)+ rec TD", "Name a WR from \(year) with at least \(threshold) receiving TDs. Points = 6× receiving TDs.")
+            }
+            for threshold in [500, 650, 800] {
+                add(year, .TE, .receivingYards, .statAtLeast(.receivingYards, threshold), "\(year) TE \(threshold)+ rec yards", "Name a TE from \(year) with at least \(threshold) receiving yards. Points = receiving yards.")
+                add(year, .TE, .receivingYards, .statAtMost(.receivingYards, threshold), "\(year) TE under \(threshold) rec yards", "Name a TE from \(year) with at most \(threshold) receiving yards. Points = receiving yards.")
+            }
+        }
+
+        for year in [2018, 2019, 2020] {
+            for team in teams {
+                add(
+                    year,
+                    .WR,
+                    .receivingYards,
+                    .playedForTeamAnyCareerAndStatAtLeast(team, .receivingYards, 1000),
+                    "\(year) WR 1k+ with \(team) history",
+                    "Name a WR from \(year) with at least 1,000 receiving yards who played for \(team) at any point in their career. Points = receiving yards."
+                )
+                add(
+                    year,
+                    .TE,
+                    .receivingTouchdowns,
+                    .playedForTeamAnyCareerAndStatAtMost(team, .receivingTouchdowns, 8),
+                    "\(year) TE <=8 TD with \(team) history",
+                    "Name a TE from \(year) with 8 or fewer receiving TDs who played for \(team) at any point in their career. Points = 6× receiving TDs."
+                )
+            }
+        }
 
         return templates
     }

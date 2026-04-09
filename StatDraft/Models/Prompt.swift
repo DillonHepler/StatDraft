@@ -84,6 +84,8 @@ enum PromptRequirement: Codable, Equatable {
     case bornInYear(Int)
     case statAtLeast(StatMetric, Int)
     case statAtMost(StatMetric, Int)
+    case playedForTeamAnyCareerAndStatAtLeast(String, StatMetric, Int)
+    case playedForTeamAnyCareerAndStatAtMost(String, StatMetric, Int)
 
     func isSatisfied(player: PlayerRecord, line: SeasonStatLine) -> Bool {
         switch self {
@@ -99,6 +101,10 @@ enum PromptRequirement: Codable, Equatable {
             return metric.value(from: line) >= threshold
         case .statAtMost(let metric, let threshold):
             return metric.value(from: line) <= threshold
+        case .playedForTeamAnyCareerAndStatAtLeast(let team, let metric, let threshold):
+            return player.playedForTeamInCareer(team) && metric.value(from: line) >= threshold
+        case .playedForTeamAnyCareerAndStatAtMost(let team, let metric, let threshold):
+            return player.playedForTeamInCareer(team) && metric.value(from: line) <= threshold
         }
     }
 
@@ -116,6 +122,10 @@ enum PromptRequirement: Codable, Equatable {
             return "That player did not hit at least \(threshold) \(metric.displayName) in that season."
         case .statAtMost(let metric, let threshold):
             return "That player had more than \(threshold) \(metric.displayName) in that season."
+        case .playedForTeamAnyCareerAndStatAtLeast(let team, let metric, let threshold):
+            return "That player must have played for \(team) in their career and hit at least \(threshold) \(metric.displayName) in that season."
+        case .playedForTeamAnyCareerAndStatAtMost(let team, let metric, let threshold):
+            return "That player must have played for \(team) in their career and have at most \(threshold) \(metric.displayName) in that season."
         }
     }
 }

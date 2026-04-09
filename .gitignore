@@ -30,3 +30,8 @@ Desktop.ini
 
 # Cursor / IDE (optional local)
 .idea/
+
+# Local data/build artifacts
+data/
+*.parquet
+StatDraft.xcodeproj/project.xcworkspace/

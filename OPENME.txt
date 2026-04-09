@@ -6,7 +6,15 @@ Open on a Mac with Xcode 15+:
 
 Set your Team in Signing & Capabilities for a physical device.
 
-This MVP uses bundled demo_stats.json (classic-era NFL stars, approximate stats for gameplay).
-Replace StatsRepository’s data source later with a licensed stats API for production.
+This app uses bundled demo_stats.json generated from nflverse player stats.
+Regenerate locally:
+  mkdir -p data
+  curl -L "https://github.com/nflverse/nflverse-data/releases/download/player_stats/player_stats.parquet" -o data/player_stats.parquet
+  python3 scripts/build_stats_db.py
+  python3 scripts/validate_stats_db.py
+
+Coverage reality note:
+  Single-season + single-position buckets do not have 300+ unique players in real data.
+  The current database includes all available players for the prompt year/position buckets.
 
 Multiplayer in v1: same device, pass-and-play (snake draft). Real-time online sync is not included yet.

@@ -7,6 +7,12 @@ struct ContentView: View {
         NavigationStack {
             Group {
                 switch game.phase {
+                case .loading:
+                    VStack(spacing: 12) {
+                        ProgressView()
+                        Text("Loading player database...")
+                            .foregroundStyle(.secondary)
+                    }
                 case .lobby:
                     LobbyView(game: game)
                 case .drafting:

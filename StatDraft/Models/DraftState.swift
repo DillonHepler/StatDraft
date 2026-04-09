@@ -44,6 +44,7 @@ struct DraftPick: Identifiable, Codable, Equatable {
 }
 
 enum DraftPhase: Equatable {
+    case loading
     case lobby
     case drafting
     case finished

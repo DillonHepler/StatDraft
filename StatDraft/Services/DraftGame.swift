@@ -3,7 +3,7 @@ import SwiftUI
 
 @MainActor
 final class DraftGame: ObservableObject {
-    @Published private(set) var phase: DraftPhase = .lobby
+    @Published private(set) var phase: DraftPhase = .loading
     @Published private(set) var seats: [PlayerSeat] = []
     @Published private(set) var prompts: [Prompt] = []
     @Published private(set) var picks: [DraftPick] = []
@@ -13,10 +13,23 @@ final class DraftGame: ObservableObject {
     @Published var lastError: String?
     @Published var lastPickSummary: String?
 
-    private let stats: StatsRepository
+    private var stats: StatsRepository?
 
-    init(stats: StatsRepository = StatsRepository()) {
+    init(stats: StatsRepository? = nil) {
         self.stats = stats
+        if stats == nil {
+            Task {
+                let loaded = await Task.detached(priority: .userInitiated) {
+                    StatsRepository()
+                }.value
+                self.stats = loaded
+                self.lastError = loaded.loadError
+                self.phase = .lobby
+            }
+        } else {
+            self.lastError = stats?.loadError
+            self.phase = .lobby
+        }
     }
 
     var roundCount: Int { prompts.count }
@@ -55,6 +68,14 @@ final class DraftGame: ObservableObject {
     }
 
     func startDraft() {
+        guard let stats else {
+            lastError = "Stats are still loading. Try again in a moment."
+            return
+        }
+        if let loadError = stats.loadError {
+            lastError = loadError
+            return
+        }
         guard seats.count >= 2, prompts.count >= 4 else {
             lastError = "Need at least 2 players and 4 rounds."
             return
@@ -70,6 +91,10 @@ final class DraftGame: ObservableObject {
         guard phase == .drafting else { return }
         guard let prompt = currentPrompt, let seat = currentSeat else {
             lastError = "Draft state error."
+            return
+        }
+        guard let stats else {
+            lastError = "Stats are still loading. Try again in a moment."
             return
         }
 

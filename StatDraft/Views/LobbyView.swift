@@ -37,6 +37,12 @@ struct LobbyView: View {
                     game.startDraft()
                 }
                 .disabled(!canStart)
+
+                if let err = game.lastError {
+                    Text(err)
+                        .foregroundStyle(.red)
+                        .font(.callout)
+                }
             }
         }
         .navigationTitle("Stat Draft")

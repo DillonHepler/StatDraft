@@ -37,7 +37,7 @@ struct PlayerRecord: Codable, Identifiable, Equatable {
         if let careerTeams, !careerTeams.isEmpty {
             return careerTeams.contains { $0.caseInsensitiveCompare(team) == .orderedSame }
         }
-        seasons.values.contains { line in
+        return seasons.values.contains { line in
             line.team?.caseInsensitiveCompare(team) == .orderedSame
         }
     }

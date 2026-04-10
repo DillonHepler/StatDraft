@@ -21,6 +21,14 @@ struct DraftView: View {
                     Text(seat.name).fontWeight(.bold)
                 }
                 .font(.headline)
+                HStack(spacing: 8) {
+                    Image(systemName: "timer")
+                    Text("Time left: \(game.secondsRemaining)s")
+                        .monospacedDigit()
+                        .fontWeight(.semibold)
+                }
+                .font(.subheadline)
+                .foregroundStyle(game.secondsRemaining <= 10 ? .red : .secondary)
 
                 TextField("Type full player name (e.g. Tom Brady)", text: $entry)
                     .textFieldStyle(.roundedBorder)
@@ -58,6 +66,12 @@ struct DraftView: View {
         .padding()
         .navigationTitle("Live draft")
         .navigationBarTitleDisplayMode(.inline)
+        .onChange(of: game.currentRoundIndex) { _ in
+            entry = ""
+        }
+        .onChange(of: game.currentPickInRound) { _ in
+            entry = ""
+        }
     }
 
     private var progressHeader: some View {

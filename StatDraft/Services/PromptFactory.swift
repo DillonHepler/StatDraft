@@ -14,46 +14,135 @@ enum PromptFactory {
     private static let minEligibleForConstraint = 5
     private static let pool: [Template] = makePool()
 
+    /// Caps how many prompts from the same *family* appear in one draft (e.g. name-letter games).
+    private static func maxPerDiversityBucket(_ bucket: String) -> Int {
+        switch bucket {
+        case "nameLetter": return 2
+        case "alliteration": return 2
+        case "college": return 4
+        case "draft12", "draft37": return 2
+        case "draftYear", "draftSingleRound", "draftAfterRound", "draftPickBand": return 2
+        case "teamCareer": return 3
+        case "teamStatCombo": return 2
+        case "statThreshold": return 3
+        case "rings": return 2
+        case "teamCount": return 2
+        case "plain": return 99
+        default: return 2
+        }
+    }
+
+    private static func diversityBucket(for requirement: PromptRequirement) -> String {
+        switch requirement {
+        case .any: return "plain"
+        case .nameStartsWithLetter: return "nameLetter"
+        case .alliterativeName: return "alliteration"
+        case .attendedCollege: return "college"
+        case .draftedInRounds1Or2: return "draft12"
+        case .draftedInRounds3Through7: return "draft37"
+        case .draftedInYear: return "draftYear"
+        case .draftedInRound: return "draftSingleRound"
+        case .draftedAfterRound: return "draftAfterRound"
+        case .draftedAtPickAtMost, .draftedAtPickRange: return "draftPickBand"
+        case .playedForTeamAnyCareer: return "teamCareer"
+        case .playedForTeamInSeason: return "teamCareer"
+        case .playedForTeamAnyCareerAndStatAtLeast, .playedForTeamAnyCareerAndStatAtMost: return "teamStatCombo"
+        case .statAtLeast, .statAtMost: return "statThreshold"
+        case .superBowlWinsAtLeast, .superBowlWinsExactly: return "rings"
+        case .playedForAtLeastTeams, .playedForExactlyTeams: return "teamCount"
+        case .bornInYear: return "birthYear"
+        }
+    }
+
     static func makePrompts(
         roundCount: Int,
         stats: StatsRepository?,
         minimumEligibleAnswers: Int = 5
     ) -> [Prompt] {
         let viablePool = filteredPool(using: stats, minimumEligibleAnswers: minimumEligibleAnswers)
-        let count = min(max(roundCount, 4), viablePool.count)
+        let count = min(max(roundCount, 4), max(1, viablePool.count))
         var rng = SystemRandomNumberGenerator()
+
         let noveltyPool = viablePool.filter { !isPlainTemplate($0) }
         let baselinePool = viablePool.filter(isPlainTemplate)
 
         var selected: [Template] = []
+        var usedKeys = Set<String>()
+        var bucketCounts: [String: Int] = [:]
 
-        // Ensure every position appears, preferring novelty prompts.
-        for position in Position.allCases {
-            if let pick = noveltyPool.filter({ $0.position == position }).randomElement(using: &rng)
-                ?? baselinePool.filter({ $0.position == position }).randomElement(using: &rng)
-            {
-                selected.append(pick)
+        func key(_ t: Template) -> String { templateKey(t) }
+
+        func canAdd(_ t: Template) -> Bool {
+            guard !usedKeys.contains(key(t)) else { return false }
+            let b = diversityBucket(for: t.requirement)
+            let cap = maxPerDiversityBucket(b)
+            return (bucketCounts[b] ?? 0) < cap
+        }
+
+        func appendIfCan(_ t: Template) -> Bool {
+            guard canAdd(t) else { return false }
+            selected.append(t)
+            usedKeys.insert(key(t))
+            let b = diversityBucket(for: t.requirement)
+            bucketCounts[b, default: 0] += 1
+            return true
+        }
+
+        func firstMatching(in pool: [Template], where matches: (PromptRequirement) -> Bool) -> Template? {
+            pool.shuffled(using: &rng).first { matches($0.requirement) }
+        }
+
+        // Prefer one early-round and one mid/late-round draft prompt when data supports them.
+        if let t = firstMatching(in: noveltyPool, where: { if case .draftedInRounds1Or2 = $0 { return true }; return false }) {
+            _ = appendIfCan(t)
+        }
+        if selected.count < count, let t = firstMatching(in: noveltyPool, where: { if case .draftedInRounds3Through7 = $0 { return true }; return false }) {
+            _ = appendIfCan(t)
+        }
+        if selected.count < count, let t = firstMatching(in: noveltyPool, where: { if case .attendedCollege = $0 { return true }; return false }) {
+            _ = appendIfCan(t)
+        }
+
+        // Ensure every position appears once, favoring non-plain prompts.
+        for position in Position.allCases.shuffled(using: &rng) {
+            guard selected.count < count else { break }
+            let noveltyForPos = noveltyPool.shuffled(using: &rng).filter { $0.position == position }
+            let baselineForPos = baselinePool.shuffled(using: &rng).filter { $0.position == position }
+            if let pick = noveltyForPos.first(where: canAdd) ?? baselineForPos.first(where: canAdd) {
+                _ = appendIfCan(pick)
             }
         }
 
         let noveltyTarget = min(max(Int(Double(count) * 0.70), 1), count)
-        let existingKeys = Set(selected.map(templateKey))
-        var noveltyRemaining = noveltyPool.shuffled().filter { !existingKeys.contains(templateKey($0)) }
-        var baselineRemaining = baselinePool.shuffled().filter { !existingKeys.contains(templateKey($0)) }
+        var noveltyRemaining = noveltyPool.shuffled(using: &rng).filter { !usedKeys.contains(key($0)) }
+        var baselineRemaining = baselinePool.shuffled(using: &rng).filter { !usedKeys.contains(key($0)) }
 
-        while selected.count < min(noveltyTarget, count), !noveltyRemaining.isEmpty {
-            selected.append(noveltyRemaining.removeFirst())
+        while selected.count < min(noveltyTarget, count), let idx = noveltyRemaining.firstIndex(where: canAdd) {
+            let pick = noveltyRemaining.remove(at: idx)
+            _ = appendIfCan(pick)
         }
-        while selected.count < count, !noveltyRemaining.isEmpty {
-            selected.append(noveltyRemaining.removeFirst())
+        while selected.count < count, let idx = noveltyRemaining.firstIndex(where: canAdd) {
+            let pick = noveltyRemaining.remove(at: idx)
+            _ = appendIfCan(pick)
         }
-        while selected.count < count, !baselineRemaining.isEmpty {
-            selected.append(baselineRemaining.removeFirst())
+        while selected.count < count, let idx = baselineRemaining.firstIndex(where: canAdd) {
+            let pick = baselineRemaining.remove(at: idx)
+            _ = appendIfCan(pick)
         }
-        selected.shuffle()
+
+        // If caps blocked filling, relax duplicate-key only (same template twice is still wrong — relax bucket caps by refilling from full viable pool).
+        if selected.count < count {
+            let filler = viablePool.shuffled(using: &rng).filter { !usedKeys.contains(key($0)) }
+            for t in filler where selected.count < count {
+                selected.append(t)
+                usedKeys.insert(key(t))
+            }
+        }
+
+        selected.shuffle(using: &rng)
 
         return selected.prefix(count).enumerated().map { idx, t in
-            return Prompt(
+            Prompt(
                 roundIndex: idx,
                 season: t.season,
                 position: t.position,
@@ -185,9 +274,9 @@ enum PromptFactory {
             }
         }
 
-        // Fun name-based prompts.
-        let initialLetters = ["A", "B", "C", "D", "E", "J", "K", "M", "R", "S", "T"]
-        for year in [2008, 2012, 2016, 2020, 2024] {
+        // Name-letter prompts: keep the pool small so they do not drown out college/draft; selection also caps this family at 2 per game.
+        let initialLetters = ["A", "M", "R", "T"]
+        for year in [2016, 2024] {
             for letter in initialLetters {
                 add(year, .QB, .passingYards, .nameStartsWithLetter(letter), "\(year) QB starts with \(letter)", "Name a QB from \(year) whose name starts with \(letter). Points = passing yards.")
                 add(year, .RB, .rushingYards, .nameStartsWithLetter(letter), "\(year) RB starts with \(letter)", "Name an RB from \(year) whose name starts with \(letter). Points = rushing yards.")
@@ -260,10 +349,15 @@ enum PromptFactory {
             add(year, .TE, .receivingYards, .superBowlWinsAtLeast(2), "\(year) TE 2+ rings", "Name a TE from \(year) with 2+ Super Bowl wins. Points = receiving yards.")
         }
 
-        // College prompts.
+        // College prompts — wording matches user-facing “attended {school}”.
         let colleges = [
             "Alabama", "Georgia", "LSU", "Ohio State", "Michigan", "USC", "Clemson", "Notre Dame",
-            "Oklahoma", "Texas", "Penn State", "Florida", "Oregon", "Wisconsin", "Iowa"
+            "Oklahoma", "Texas", "Penn State", "Florida", "Oregon", "Wisconsin", "Iowa",
+            "Miami", "UCLA", "Stanford", "Tennessee", "Nebraska", "Auburn", "TCU", "Washington",
+            "Ole Miss", "Mississippi State", "South Carolina", "Arkansas", "Kentucky", "NC State",
+            "Utah", "Arizona State", "Baylor", "West Virginia", "Pittsburgh", "Duke", "North Carolina",
+            "Virginia Tech", "Louisville", "Texas A&M", "California", "Colorado", "Minnesota",
+            "Syracuse", "Boston College", "Cincinnati", "Houston", "SMU", "Wake Forest"
         ]
         for year in [2008, 2012, 2016, 2020, 2024] {
             for college in colleges {
@@ -289,8 +383,21 @@ enum PromptFactory {
         }
 
         // Draft-oriented prompts. Season is where scoring comes from; draft filter checks career metadata.
-        for season in [2008, 2012, 2016, 2020, 2024] {
-            for draftYear in stride(from: 1970, through: 2024, by: 6) {
+        let draftSeasons = [2008, 2012, 2016, 2020, 2024]
+        for season in draftSeasons {
+            add(season, .QB, .passingYards, .draftedInRounds1Or2, "\(season) QB — rounds 1–2 pick", "Name a QB from \(season) who was drafted in round 1 or 2. Points = passing yards.")
+            add(season, .RB, .rushingYards, .draftedInRounds1Or2, "\(season) RB — rounds 1–2 pick", "Name an RB from \(season) who was drafted in round 1 or 2. Points = rushing yards.")
+            add(season, .WR, .receivingYards, .draftedInRounds1Or2, "\(season) WR — rounds 1–2 pick", "Name a WR from \(season) who was drafted in round 1 or 2. Points = receiving yards.")
+            add(season, .TE, .receivingTouchdowns, .draftedInRounds1Or2, "\(season) TE — rounds 1–2 pick", "Name a TE from \(season) who was drafted in round 1 or 2. Points = 6× receiving TDs.")
+
+            add(season, .QB, .passingTouchdowns, .draftedInRounds3Through7, "\(season) QB — rounds 3–7 pick", "Name a QB from \(season) who was drafted in rounds 3–7. Points = 4× passing TDs.")
+            add(season, .RB, .fantasyHalfPPR, .draftedInRounds3Through7, "\(season) RB — rounds 3–7 pick", "Name an RB from \(season) who was drafted in rounds 3–7. Points = half-PPR fantasy.")
+            add(season, .WR, .receivingTouchdowns, .draftedInRounds3Through7, "\(season) WR — rounds 3–7 pick", "Name a WR from \(season) who was drafted in rounds 3–7. Points = 6× receiving TDs.")
+            add(season, .TE, .receptions, .draftedInRounds3Through7, "\(season) TE — rounds 3–7 pick", "Name a TE from \(season) who was drafted in rounds 3–7. Points = 0.5× receptions.")
+        }
+
+        for season in draftSeasons {
+            for draftYear in stride(from: 1976, through: 2020, by: 8) {
                 add(season, .QB, .passingYards, .draftedInYear(draftYear), "\(season) QB drafted in \(draftYear)", "Name a QB from \(season) who was drafted in \(draftYear). Points = passing yards.")
                 add(season, .RB, .rushingYards, .draftedInYear(draftYear), "\(season) RB drafted in \(draftYear)", "Name an RB from \(season) who was drafted in \(draftYear). Points = rushing yards.")
                 add(season, .WR, .receivingYards, .draftedInYear(draftYear), "\(season) WR drafted in \(draftYear)", "Name a WR from \(season) who was drafted in \(draftYear). Points = receiving yards.")

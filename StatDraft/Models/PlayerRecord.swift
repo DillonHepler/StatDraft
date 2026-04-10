@@ -55,6 +55,41 @@ struct PlayerRecord: Codable, Identifiable, Equatable {
         return String(first).caseInsensitiveCompare(letter) == .orderedSame
     }
 
+    /// Normalizes school strings so prompt labels like "Ohio State" match data like "Ohio State University".
+    static func normalizedCollegeToken(_ raw: String) -> String {
+        var s = raw.lowercased()
+        s = s.replacingOccurrences(of: "’", with: "'")
+        s = s.replacingOccurrences(of: "^the\\s+", with: "", options: .regularExpression)
+        s = s.replacingOccurrences(of: "\\s+university$", with: "", options: .regularExpression)
+        s = s.replacingOccurrences(of: "\\s+college$", with: "", options: .regularExpression)
+        s = s.trimmingCharacters(in: .whitespacesAndNewlines)
+        return s
+    }
+
+    /// True if the player's `collegeName` matches the prompt fragment (abbreviation or full name).
+    /// Supports nflverse-style multi-school strings separated by "; ".
+    func attendedCollegeMatching(_ query: String) -> Bool {
+        guard let raw = collegeName?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty else {
+            return false
+        }
+        let segments = raw.split(separator: ";").map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        for seg in segments {
+            if Self.collegeTokensMatch(segment: seg, query: query) { return true }
+        }
+        return Self.collegeTokensMatch(segment: raw, query: query)
+    }
+
+    private static func collegeTokensMatch(segment: String, query: String) -> Bool {
+        let a = normalizedCollegeToken(segment)
+        let b = normalizedCollegeToken(query)
+        if a == b { return true }
+        if a.count < 2 || b.count < 2 { return false }
+        if a.contains(b) || b.contains(a) { return true }
+        // nflverse often stores "Mississippi" for Ole Miss.
+        let oleMiss = (a == "mississippi" && b == "ole miss") || (b == "mississippi" && a == "ole miss")
+        return oleMiss
+    }
+
     var isAlliterativeName: Bool {
         let components = displayName
             .split(separator: " ")

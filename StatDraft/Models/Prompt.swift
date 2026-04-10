@@ -95,6 +95,10 @@ enum PromptRequirement: Codable, Equatable {
     case superBowlWinsAtLeast(Int)
     case superBowlWinsExactly(Int)
     case draftedAfterRound(Int)
+    /// Draft round is 1 or 2 (early rounds).
+    case draftedInRounds1Or2
+    /// Draft round is 3…7.
+    case draftedInRounds3Through7
     case attendedCollege(String)
     case playedForAtLeastTeams(Int)
     case playedForExactlyTeams(Int)
@@ -138,8 +142,14 @@ enum PromptRequirement: Codable, Equatable {
         case .draftedAfterRound(let round):
             guard let draftRound = player.draftRound else { return false }
             return draftRound > round
+        case .draftedInRounds1Or2:
+            guard let r = player.draftRound else { return false }
+            return r == 1 || r == 2
+        case .draftedInRounds3Through7:
+            guard let r = player.draftRound else { return false }
+            return r >= 3 && r <= 7
         case .attendedCollege(let college):
-            return player.collegeName?.caseInsensitiveCompare(college) == .orderedSame
+            return player.attendedCollegeMatching(college)
         case .playedForAtLeastTeams(let count):
             return player.distinctTeamCount >= count
         case .playedForExactlyTeams(let count):
@@ -183,6 +193,10 @@ enum PromptRequirement: Codable, Equatable {
             return "That player does not have exactly \(wins) Super Bowl wins."
         case .draftedAfterRound(let round):
             return "That player was not drafted after round \(round)."
+        case .draftedInRounds1Or2:
+            return "That player was not drafted in round 1 or 2."
+        case .draftedInRounds3Through7:
+            return "That player was not drafted in rounds 3 through 7."
         case .attendedCollege(let college):
             return "That player did not attend \(college)."
         case .playedForAtLeastTeams(let count):

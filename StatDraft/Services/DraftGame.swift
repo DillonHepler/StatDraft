@@ -3,6 +3,7 @@ import SwiftUI
 
 @MainActor
 final class DraftGame: ObservableObject {
+    private let pickTimeLimitSeconds = 30
     @Published private(set) var phase: DraftPhase = .loading
     @Published private(set) var seats: [PlayerSeat] = []
     @Published private(set) var prompts: [Prompt] = []
@@ -10,10 +11,13 @@ final class DraftGame: ObservableObject {
     @Published private(set) var takenPlayerIds: Set<String> = []
     @Published private(set) var currentRoundIndex: Int = 0
     @Published private(set) var currentPickInRound: Int = 0
+    @Published private(set) var secondsRemaining: Int = 30
     @Published var lastError: String?
     @Published var lastPickSummary: String?
 
     private var stats: StatsRepository?
+    private var pickTimerTask: Task<Void, Never>?
+    private var activeTurnID: UUID?
 
     init(stats: StatsRepository? = nil) {
         self.stats = stats
@@ -67,8 +71,10 @@ final class DraftGame: ObservableObject {
         takenPlayerIds = []
         currentRoundIndex = 0
         currentPickInRound = 0
+        secondsRemaining = pickTimeLimitSeconds
         lastError = nil
         lastPickSummary = nil
+        cancelPickTimer()
         phase = .lobby
     }
 
@@ -87,6 +93,7 @@ final class DraftGame: ObservableObject {
         }
         phase = .drafting
         lastError = nil
+        beginTurnTimer()
     }
 
     func submitPick(rawName: String) {
@@ -137,10 +144,7 @@ final class DraftGame: ObservableObject {
             lastPickSummary =
                 "\(seat.name) takes \(player.displayName) (\(prompt.season)) — \(Int(points.rounded())) pts"
 
-            advanceCursor()
-            if isDraftComplete {
-                phase = .finished
-            }
+            moveToNextTurn()
         }
     }
 
@@ -150,9 +154,11 @@ final class DraftGame: ObservableObject {
         takenPlayerIds = []
         currentRoundIndex = 0
         currentPickInRound = 0
+        secondsRemaining = pickTimeLimitSeconds
         seats = seats.map { PlayerSeat(id: $0.id, name: $0.name, totalScore: 0) }
         lastError = nil
         lastPickSummary = nil
+        cancelPickTimer()
     }
 
     private func advanceCursor() {
@@ -169,5 +175,53 @@ final class DraftGame: ObservableObject {
             return pickInRound
         }
         return playerCount - 1 - pickInRound
+    }
+
+    private func moveToNextTurn() {
+        advanceCursor()
+        if isDraftComplete {
+            cancelPickTimer()
+            phase = .finished
+            return
+        }
+        beginTurnTimer()
+    }
+
+    private func beginTurnTimer() {
+        cancelPickTimer()
+        guard phase == .drafting else { return }
+        let turnID = UUID()
+        activeTurnID = turnID
+        secondsRemaining = pickTimeLimitSeconds
+
+        pickTimerTask = Task { [weak self] in
+            guard let self else { return }
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                guard !Task.isCancelled else { return }
+                await MainActor.run {
+                    guard self.phase == .drafting, self.activeTurnID == turnID else { return }
+                    guard self.secondsRemaining > 0 else { return }
+                    self.secondsRemaining -= 1
+                    if self.secondsRemaining == 0 {
+                        self.handleTurnTimeout(turnID: turnID)
+                    }
+                }
+            }
+        }
+    }
+
+    private func cancelPickTimer() {
+        pickTimerTask?.cancel()
+        pickTimerTask = nil
+        activeTurnID = nil
+    }
+
+    private func handleTurnTimeout(turnID: UUID) {
+        guard phase == .drafting, activeTurnID == turnID else { return }
+        guard let timedOutSeat = currentSeat else { return }
+        lastError = nil
+        lastPickSummary = "\(timedOutSeat.name) timed out (30s). Turn skipped."
+        moveToNextTurn()
     }
 }

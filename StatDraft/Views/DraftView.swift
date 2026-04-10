@@ -55,10 +55,10 @@ struct DraftView: View {
                 }
 
                 standings
-            } else if game.phase == .finished {
-                EmptyView()
             } else {
+                // `.finished` is handled by `ContentView` (ResultsView). Anything else here is transient or idle.
                 Text("Draft not active.")
+                    .foregroundStyle(.secondary)
             }
 
             Spacer(minLength: 0)

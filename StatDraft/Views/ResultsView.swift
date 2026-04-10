@@ -5,7 +5,21 @@ struct ResultsView: View {
 
     var body: some View {
         List {
-            Section("Final") {
+            if let winner = winnerInfo {
+                Section {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label(winner.title, systemImage: "trophy.fill")
+                            .font(.title2.weight(.bold))
+                            .foregroundStyle(.orange)
+                        Text(winner.subtitle)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+
+            Section("Final standings") {
                 ForEach(Array(rankings.enumerated()), id: \.offset) { idx, seat in
                     HStack {
                         Text("\(idx + 1).")
@@ -20,17 +34,34 @@ struct ResultsView: View {
                 }
             }
 
-            Section("Pick log") {
-                ForEach(game.picks) { pick in
+            Section("Every pick") {
+                ForEach(Array(game.picks.enumerated()), id: \.element.id) { index, pick in
                     let seatName = game.seats.first(where: { $0.id == pick.seatId })?.name ?? "?"
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("\(seatName) — \(pick.displayName) (\(String(pick.season)))")
-                            .font(.subheadline.weight(.medium))
-                        Text(String(format: "%.0f points", pick.score))
-                            .font(.caption)
+                    let promptTitle = game.prompts.first(where: { $0.id == pick.promptId })?.title ?? "Round \(pick.roundIndex + 1)"
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Round \(pick.roundIndex + 1) · Pick \(index + 1)")
+                            .font(.caption.weight(.semibold))
                             .foregroundStyle(.secondary)
+                        Text(promptTitle)
+                            .font(.footnote)
+                            .foregroundStyle(.tertiary)
+                        HStack(alignment: .firstTextBaseline) {
+                            Text(seatName)
+                                .fontWeight(.semibold)
+                            Text("→")
+                                .foregroundStyle(.secondary)
+                            Text(pick.displayName)
+                            Spacer(minLength: 8)
+                            Text(String(format: "%.0f pts", pick.score))
+                                .monospacedDigit()
+                                .fontWeight(.semibold)
+                        }
+                        .font(.subheadline)
+                        Text("Season \(pick.season) stats for scoring")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
                     }
-                    .padding(.vertical, 2)
+                    .padding(.vertical, 4)
                 }
             }
 
@@ -45,5 +76,17 @@ struct ResultsView: View {
 
     private var rankings: [PlayerSeat] {
         game.seats.sorted(by: { $0.totalScore > $1.totalScore })
+    }
+
+    private var winnerInfo: (title: String, subtitle: String)? {
+        let ranked = rankings
+        guard let first = ranked.first else { return nil }
+        let topScore = first.totalScore
+        let tied = ranked.filter { abs($0.totalScore - topScore) < 0.01 }
+        if tied.count > 1 {
+            let names = tied.map(\.name).joined(separator: " · ")
+            return ("Tied for first", names)
+        }
+        return ("Winner: \(first.name)", String(format: "%.0f total points", first.totalScore))
     }
 }

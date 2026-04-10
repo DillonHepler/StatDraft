@@ -178,12 +178,14 @@ final class DraftGame: ObservableObject {
     }
 
     private func moveToNextTurn() {
-        advanceCursor()
+        // Check completion before advancing — otherwise `currentRoundIndex` can pass the last
+        // prompt while `phase` is still `.drafting`, and the UI briefly shows "Draft not active."
         if isDraftComplete {
             cancelPickTimer()
             phase = .finished
             return
         }
+        advanceCursor()
         beginTurnTimer()
     }
 

@@ -19,10 +19,10 @@
 		A1000000000000000000000A /* PromptFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* PromptFactory.swift */; };
 		A1000000000000000000000B /* DraftGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* DraftGame.swift */; };
 		A1000000000000000000000C /* demo_stats.json in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* demo_stats.json */; };
+		A1000000000000000000000D /* DraftingPhaseWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000D /* DraftingPhaseWrapper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		A30000000000000000000001 /* StatDraft.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StatDraft.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A20000000000000000000001 /* StatDraftApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatDraftApp.swift; sourceTree = "<group>"; };
 		A20000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A20000000000000000000003 /* LobbyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LobbyView.swift; sourceTree = "<group>"; };
@@ -35,6 +35,8 @@
 		A2000000000000000000000A /* PromptFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptFactory.swift; sourceTree = "<group>"; };
 		A2000000000000000000000B /* DraftGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftGame.swift; sourceTree = "<group>"; };
 		A2000000000000000000000C /* demo_stats.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = demo_stats.json; sourceTree = "<group>"; };
+		A2000000000000000000000D /* DraftingPhaseWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftingPhaseWrapper.swift; sourceTree = "<group>"; };
+		A30000000000000000000001 /* StatDraft.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StatDraft.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +84,7 @@
 				A20000000000000000000002 /* ContentView.swift */,
 				A20000000000000000000003 /* LobbyView.swift */,
 				A20000000000000000000004 /* DraftView.swift */,
+				A2000000000000000000000D /* DraftingPhaseWrapper.swift */,
 				A20000000000000000000005 /* ResultsView.swift */,
 			);
 			path = Views;
@@ -188,6 +191,7 @@
 				A10000000000000000000002 /* ContentView.swift in Sources */,
 				A10000000000000000000003 /* LobbyView.swift in Sources */,
 				A10000000000000000000004 /* DraftView.swift in Sources */,
+				A1000000000000000000000D /* DraftingPhaseWrapper.swift in Sources */,
 				A10000000000000000000005 /* ResultsView.swift in Sources */,
 				A10000000000000000000006 /* Prompt.swift in Sources */,
 				A10000000000000000000007 /* DraftState.swift in Sources */,
@@ -251,7 +255,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = HS4FZ444M6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Stat Draft";
@@ -278,7 +282,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = HS4FZ444M6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Stat Draft";

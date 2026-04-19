@@ -35,6 +35,11 @@ struct ResultsView: View {
             }
 
             Section("Every pick") {
+                if game.picks.isEmpty {
+                    Text("No picks were locked in (for example, every turn timed out). Start a new game to try again.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
                 ForEach(Array(game.picks.enumerated()), id: \.element.id) { index, pick in
                     let seatName = game.seats.first(where: { $0.id == pick.seatId })?.name ?? "?"
                     let promptTitle = game.prompts.first(where: { $0.id == pick.promptId })?.title ?? "Round \(pick.roundIndex + 1)"

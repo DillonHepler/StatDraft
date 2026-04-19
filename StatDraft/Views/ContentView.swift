@@ -15,10 +15,8 @@ struct ContentView: View {
                     }
                 case .lobby:
                     LobbyView(game: game)
-                case .drafting:
-                    DraftView(game: game)
-                case .finished:
-                    ResultsView(game: game)
+                case .drafting, .finished:
+                    DraftingPhaseWrapper(game: game)
                 }
             }
         }

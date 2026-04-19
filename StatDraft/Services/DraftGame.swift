@@ -178,14 +178,19 @@ final class DraftGame: ObservableObject {
     }
 
     private func moveToNextTurn() {
-        // Check completion before advancing — otherwise `currentRoundIndex` can pass the last
-        // prompt while `phase` is still `.drafting`, and the UI briefly shows "Draft not active."
+        // Full board of picks (no skipped turns).
         if isDraftComplete {
             cancelPickTimer()
             phase = .finished
             return
         }
         advanceCursor()
+        // All pick slots used (e.g. every turn timed out) — still end the draft and show results.
+        if currentRoundIndex >= prompts.count {
+            cancelPickTimer()
+            phase = .finished
+            return
+        }
         beginTurnTimer()
     }
 

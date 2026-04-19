@@ -55,10 +55,13 @@ struct DraftView: View {
                 }
 
                 standings
-            } else {
-                // `.finished` is handled by `ContentView` (ResultsView). Anything else here is transient or idle.
-                Text("Draft not active.")
-                    .foregroundStyle(.secondary)
+            } else if game.phase == .drafting {
+                VStack(alignment: .leading, spacing: 8) {
+                    ProgressView()
+                    Text("Preparing this pick…")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             Spacer(minLength: 0)
